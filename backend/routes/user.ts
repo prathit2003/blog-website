@@ -8,6 +8,7 @@ import { Request, Response } from "express";
 import middleware from "../middleware";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret-key";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN || "refresh";
 const prisma = new PrismaClient();
 
 
@@ -48,11 +49,18 @@ Router.post("/signup", async (req: Request, res: Response): Promise<void> => {
       { expiresIn: "1h" }
     );
 
+    const refreshtoken = jwt.sign(
+      { userId: newUser.id, email: newUser.email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
 
     res.status(201).json({
       success: true,
       message: "User created successfully",
       token,
+      refreshtoken
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -91,11 +99,16 @@ Router.post("/signin", async (req: Request, res: Response): Promise<void> => {
       JWT_SECRET,
       { expiresIn: "1h" }
     );
-
+    const refreshtoken = jwt.sign(
+      { userId: user.id, email: user.email },
+      REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
     res.status(200).json({
       success: true,
       message: "Signin successful",
       token,
+      refreshtoken
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -147,7 +160,20 @@ Router.get("/info", middleware, async (req: Request, res: Response): Promise<voi
     res.status(500).json({ success: false, message: "Internal server error." });
   }
 });
-
-
+Router.post("/token", (req: Request, res: Response) => {
+  const { refreshtoken } = req.body;
+  if (!refreshtoken) {
+    res.sendStatus(401);
+    return;
+  }
+  jwt.verify(refreshtoken, REFRESH_TOKEN_SECRET, (err: any, user: any) => {
+    if (err) {
+      res.sendStatus(403);
+      return;
+    }
+    const accessToken = jwt.sign({ username: user.username, id: user.id }, JWT_SECRET, { expiresIn: "1h" });
+    res.json({ accessToken });
+  })
+})
 
 export default Router;

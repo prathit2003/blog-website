@@ -25,8 +25,9 @@ const SignUp = () => {
         firstname: firstname,
         username: username
       })
-      const { message, token } = response.data;
+      const { message, token, refreshtoken } = response.data;
       localStorage.setItem("authtoken", token);
+      localStorage.setItem("refreshtoken", refreshtoken);
       setSuccess(message);
       console.log("executed handlesignup");
       navigate("/home");

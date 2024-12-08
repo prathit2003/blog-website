@@ -155,5 +155,15 @@ router.get("/trending", middleware, async (req: Request, res: Response): Promise
     console.log(error);
   }
 })
+router.get("/my-blogs", middleware, async (req: Request, res: Response): Promise<void> => {
+  const userid = req.auth?.userId;
+  try {
+    const response = await prisma.post.findMany({ where: { authorId: Number(userid) } });
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+    res.status(500);
+  }
+})
 
 export default router;

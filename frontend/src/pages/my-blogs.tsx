@@ -17,7 +17,7 @@ interface Blog {
   tags: { name: string; id: number }[];
 }
 
-const Blogs = () => {
+const myBlogs = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [profiles, setProfiles] = useState<string[]>([]);
@@ -37,18 +37,17 @@ const Blogs = () => {
 
     const getBlogs = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/v1/blogs/get-blogs", {
+        const response = await axios.get("http://localhost:3000/api/v1/blogs/my-blogs", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
         setBlogs(response.data);
+
       } catch (err) {
         setError("Failed to load blogs. Please try again later.");
       }
     };
-
-
     const getUserInfo = async () => {
       try {
         const response = await axios.get("http://localhost:3000/api/v1/user/info", {
@@ -76,6 +75,7 @@ const Blogs = () => {
         const usernames = response.data.map((profile: { author: { username: string } }) => profile.author.username);
         console.log("Extracted Usernames:", usernames);
         setProfiles(usernames);
+
       } catch (err) {
         setError("Failed to load profiles info.");
       }
@@ -161,7 +161,6 @@ const Blogs = () => {
           <ul className="space-y-4">
             <li className="hover:text-sky-400 transition-colors cursor-pointer" onClick={() => navigate('/home')}>Home</li>
             <li className="hover:text-sky-400 transition-colors cursor-pointer" onClick={() => navigate('/post')}>Create a blog</li>
-            <li className="hover:text-sky-400 transition-colors cursor-pointer" onClick={() => navigate('/my-blogs')}>Your blogs</li>
             <li className="hover:text-sky-400 transition-colors cursor-pointer" onClick={() => navigate('/trending')}>Discover More</li>
           </ul>
         </div>
@@ -170,4 +169,4 @@ const Blogs = () => {
   );
 };
 
-export default Blogs;
+export default myBlogs;
