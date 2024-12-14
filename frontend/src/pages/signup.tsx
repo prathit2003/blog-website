@@ -29,7 +29,6 @@ const SignUp = () => {
       localStorage.setItem("authtoken", token);
       localStorage.setItem("refreshtoken", refreshtoken);
       setSuccess(message);
-      console.log("executed handlesignup");
       navigate("/home");
 
     } catch (err: any) {

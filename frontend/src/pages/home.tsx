@@ -3,9 +3,12 @@ import { BsArrowDownShort } from "react-icons/bs";
 import AppBar from "../components/appbar";
 import Footer from "../components/footer";
 import ReviewsCarousel from "../components/carousel";
-
+import scheduleTokenRefresh from "../functions/schedulerefresh";
 const Home: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const token = localStorage.getItem("authtoken") || "";
+  const refreshtoken = localStorage.getItem("refreshtoken") || "";
+  scheduleTokenRefresh({ token }, { reftoken: refreshtoken });
 
   const handleToggle = (index: number) => {
     if (activeIndex === index) {
@@ -25,7 +28,7 @@ const Home: React.FC = () => {
           <div className="h-[120vh] w-full bg-black"></div>
         </div>
 
-        {/* Intro Section */}
+
         <div className="absolute top-8 left-8 transform bg-black text-white max-w-3xl p-8 pt-16 shadow-lg rounded-lg">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Blog with the best.</h1>
           <p className="text-lg md:text-xl text-gray-300 mb-8">
@@ -38,7 +41,6 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Feature Image */}
         <div className="absolute top-[50vh] left-1/2 transform -translate-x-1/2 h-[80vh] w-[60vw] border-8 border-transparent bg-gray-100 flex items-center justify-center shadow-lg rounded-t-lg">
           <img
             src="https://via.placeholder.com/400x300"
@@ -47,7 +49,7 @@ const Home: React.FC = () => {
           />
         </div>
 
-        {/* Section 2 */}
+
         <div className="absolute top-[140vh] left-8 transform bg-white text-black max-w-3xl p-8 mt-4 pt-4 rounded-lg">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Simple, meet flexible</h1>
           <p className="text-lg md:text-xl text-black mb-8">
@@ -60,7 +62,7 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Accordion Section */}
+
         <div className="absolute top-[180vh] left-8 right-8 flex items-stretch justify-between p-8 space-x-6 flex-col md:flex-row">
           <div className="flex flex-col flex-1 space-y-6 justify-center">
             {["Blog beautifully", "Edit easily", "Share anything and everything, simply"].map((title, index) => (
@@ -73,7 +75,7 @@ const Home: React.FC = () => {
                 {activeIndex === index + 1 && (
                   <div className="mt-2 text-black">
                     <p>
-                      {/* Replace with actual descriptions */}
+
                       {index === 0
                         ? "Customize your blog’s look and feel in a couple of clicks with beautifully designed themes."
                         : index === 1
@@ -96,7 +98,6 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Section 3 */}
         <div className="absolute top-[290vh] left-8 transform bg-black text-white max-w-3xl p-8 pt-4 shadow-lg rounded-lg">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">See what your favourite celebrity has to say.</h1>
           <p className="text-lg md:text-xl text-gray-300 mb-8">
@@ -109,7 +110,6 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Image */}
         <div className="absolute top-[340vh] left-1/2 transform -translate-x-1/2 h-[90vh] w-[60vw] border-8 border-transparent bg-gray-100 flex items-center justify-center shadow-lg rounded-t-lg">
           <img
             src="https://via.placeholder.com/400x300"

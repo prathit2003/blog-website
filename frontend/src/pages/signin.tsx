@@ -13,10 +13,9 @@ const SignIn: React.FC = () => {
         email: Email,
         password: password,
       });
-
-
-      const { token, message } = response.data;
-      localStorage.setItem("authToken", token);
+      const { token, message, refreshtoken } = response.data;
+      localStorage.setItem("authtoken", token);
+      localStorage.setItem("refreshtoken", refreshtoken);
       alert(message);
       navigate("/home");
 

@@ -1,8 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
-
+import { useState, useEffect } from 'react';
+import isLoggedIn from "../functions/loggedin";
 const Header = () => {
   const navigate = useNavigate();
-
+  const [logged, setlogged] = useState(false);
   const handlesignupbutton = () => {
     navigate("/signup");
   };
@@ -10,6 +11,15 @@ const Header = () => {
   const handleloginbutton = () => {
     navigate("/signin");
   };
+  const handlelogoutbutton = () => {
+    setlogged(false);
+    navigate("/home");
+  }
+  useEffect(() => {
+    if (isLoggedIn()) {
+      setlogged(true);
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 w-full bg-black text-white py-2 shadow-md border-b-2 border-white z-10">
@@ -32,7 +42,14 @@ const Header = () => {
           ))}
         </nav>
 
-        <div className="space-x-4">
+        {logged ? <div className='space-x-6'>
+          <button
+            className="px-8 py-3 bg-transparent text-white border-2 border-white rounded-full hover:bg-white hover:text-black transition-all duration-300 ease-in-out transform hover:scale-105"
+            onClick={handlelogoutbutton}
+          >
+            Log out
+          </button>
+        </div> : <div className="space-x-4">
           <button
             className="px-8 py-3 bg-transparent text-white border-2 border-white rounded-full hover:bg-white hover:text-black transition-all duration-300 ease-in-out transform hover:scale-105"
             onClick={handlesignupbutton}
@@ -45,7 +62,7 @@ const Header = () => {
           >
             Log In
           </button>
-        </div>
+        </div>}
       </div>
     </header>
   );

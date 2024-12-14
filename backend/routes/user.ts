@@ -6,14 +6,16 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { Request, Response } from "express";
 import middleware from "../middleware";
+import tokengen from "../tokengen";
 dotenv.config();
+
+
 const JWT_SECRET = process.env.JWT_SECRET || "default-secret-key";
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN || "refresh";
 const prisma = new PrismaClient();
-
-
-
 const Router = express.Router();
+
+
 const signupschema = z.object({
   email: z.string().email({ message: "invalid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }).max(50, { message: "Password must be less than 50 characters long" }),
@@ -160,20 +162,12 @@ Router.get("/info", middleware, async (req: Request, res: Response): Promise<voi
     res.status(500).json({ success: false, message: "Internal server error." });
   }
 });
-Router.post("/token", (req: Request, res: Response) => {
-  const { refreshtoken } = req.body;
-  if (!refreshtoken) {
-    res.sendStatus(401);
-    return;
-  }
-  jwt.verify(refreshtoken, REFRESH_TOKEN_SECRET, (err: any, user: any) => {
-    if (err) {
-      res.sendStatus(403);
-      return;
-    }
-    const accessToken = jwt.sign({ username: user.username, id: user.id }, JWT_SECRET, { expiresIn: "1h" });
-    res.json({ accessToken });
-  })
+Router.get("/token", tokengen, (req: Request, res: Response) => {
+  const userid = req.auth?.userId;
+  const emailid = req.auth?.email;
+  const accessToken = jwt.sign({ userId: userid, email: emailid }, JWT_SECRET, { expiresIn: "1h" });
+  res.json({ accessToken });
 })
+
 
 export default Router;
