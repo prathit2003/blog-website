@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { HiMenu } from "react-icons/hi";
-
+import SearchBar from '../components/searchbar';
 interface Blog {
   id: number;
   title: string;
@@ -27,7 +27,6 @@ const Blogs = () => {
   const toggleMenu = () => setShowMenu(!showMenu);
   const navigate = useNavigate();
   const token = localStorage.getItem("authtoken");
-
   useEffect(() => {
     if (!token) {
       navigate("/signin");
@@ -86,8 +85,7 @@ const Blogs = () => {
     getBlogs();
     getUserInfo();
     getProfiles();
-  }, [token]);
-
+  }, [token, blogs]);
   const toggleExpand = (id: number) => {
     setExpanded((prev) => (prev === id ? null : id));
   };
@@ -96,7 +94,7 @@ const Blogs = () => {
     <div className="flex flex-col h-screen bg-black text-white">
       <header className="bg-black text-white flex items-center justify-between px-4 py-3 shadow-md border-b border-white">
         <button className="text-2xl font-bold font-['Merriweather', 'serif']" onClick={() => navigate('/home')}>MyBlog</button>
-        <input type="text" placeholder="Search..." className="w-1/3 px-4 py-2 rounded-full text-black focus:outline-none" />
+        <SearchBar setBlogs={setBlogs} />
         <button onClick={toggleMenu} className="text-lg hover:text-sky-400 transition-colors">
           <HiMenu size={24} />
         </button>

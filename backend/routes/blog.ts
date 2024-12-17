@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
-const app = express();
 
 router.post("/post", middleware, async (req: Request, res: Response): Promise<void> => {
   const userId = req.auth?.userId as string;
@@ -158,11 +157,67 @@ router.get("/trending", middleware, async (req: Request, res: Response): Promise
 router.get("/my-blogs", middleware, async (req: Request, res: Response): Promise<void> => {
   const userid = req.auth?.userId;
   try {
-    const response = await prisma.post.findMany({ where: { authorId: Number(userid) } });
+    const response = await prisma.post.findMany({
+      where: { authorId: Number(userid) }
+      ,
+      include: {
+        author: {
+          select: { username: true },
+        },
+        tags: true,
+      },
+    });
     res.status(200).json(response);
   } catch (error) {
     console.log(error);
     res.status(500);
+  }
+})
+
+router.post("/searchblogs", middleware, async (req: Request, res: Response): Promise<void> => {
+  const { word } = req.body;
+  try {
+    const response = prisma.post.findMany({
+      where: {
+        title: {
+          contains: word,
+          mode: "insensitive",
+        }
+      },
+      include: {
+        author: {
+          select: { username: true },
+        },
+        tags: true,
+      },
+    })
+    res.status(200).json({ response });
+  } catch (error) {
+    console.log(error);
+    res.status(500);
+  }
+
+});
+
+router.post("/gettitles", middleware, async (req: Request, res: Response): Promise<void> => {
+  const { title } = req.body;
+  try {
+    const response = prisma.post.findMany({
+      where: {
+        title: {
+          contains: title,
+          mode: "insensitive",
+        }
+      },
+      orderBy: { likes: 'desc' },
+      select: {
+        title: true,
+      }
+    })
+    res.status(200).json({ response });
+  } catch (error) {
+    res.status(500).json({ error });
+    console.log(error);
   }
 })
 
