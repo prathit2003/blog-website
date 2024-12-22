@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { HiMenu } from "react-icons/hi";
-
+import LoadingSkeleton from '../components/loadingskeleton';
 interface Blog {
   id: number;
   title: string;
@@ -21,6 +21,7 @@ const myBlogs = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [profiles, setProfiles] = useState<string[]>([]);
+  const [loading, setloading] = useState(true);
   const [user, setUser] = useState<string>("Guest");
   const [expanded, setExpanded] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,7 @@ const myBlogs = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        setloading(false);
         setBlogs(response.data);
 
       } catch (err) {
@@ -91,7 +93,9 @@ const myBlogs = () => {
   const toggleExpand = (id: number) => {
     setExpanded((prev) => (prev === id ? null : id));
   };
-
+  if (loading) {
+    return <LoadingSkeleton />
+  }
   return (
     <div className="flex flex-col h-screen bg-black text-white">
       <header className="bg-black text-white flex items-center justify-between px-4 py-3 shadow-md border-b border-white">
