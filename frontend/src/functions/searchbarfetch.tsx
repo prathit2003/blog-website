@@ -6,14 +6,15 @@ const handleSearch = async (word: string) => {
   try {
     const response = await axios.post(
       "http://localhost:3000/api/v1/blogs/searchblogs",
-      { words: word },
+      { word: word },
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
-    return response.data;
+    console.log(response.data.response);
+    return response.data.response;
   } catch (error) {
     console.error("Error searching blogs:", error);
     throw error;

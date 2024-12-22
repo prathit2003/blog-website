@@ -10,11 +10,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBlogs }) => {
   const [search, setSearch] = useState("");
   const [result, setResult] = useState<string[]>([]);
   const token = localStorage.getItem("authtoken");
-
   useEffect(() => {
     const fetchTitles = async () => {
       if (!search.trim()) {
-        setResult([]); // Clear results if the search query is empty
+        setResult([]);
         return;
       }
       try {
@@ -27,7 +26,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBlogs }) => {
             },
           }
         );
-        setResult(response.data);
+        if (response.data.response) {
+          const titles = response.data.response.map((item: { title: string }) => item.title);
+          setResult(titles);
+        } else {
+          setResult([]);
+        }
       } catch (error) {
         console.error("Error fetching titles:", error);
       }
@@ -40,6 +44,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBlogs }) => {
     if (e.key === "Enter" && search.trim()) {
       try {
         const response = await handleSearch(search);
+        console.log(response);
         setBlogs(response);
       } catch (error) {
         console.error("Error during search:", error);
@@ -47,13 +52,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBlogs }) => {
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setSearch(suggestion);
+  const handleSuggestionClick = async (suggestion: string) => {
+    try {
+      const response = await handleSearch(suggestion);
+      setBlogs(response);
+    } catch (error) {
+      console.error("error during search:", error);
+    }
   };
 
   return (
     <div className="relative w-1/3">
-      <div className="flex items-center bg-white rounded-full shadow-md focus-within:ring-2 focus-within:ring-blue-500">
+      <div className="flex items-center bg-black rounded-full shadow-md border border-white">
         <FiSearch className="ml-3 text-gray-500 text-lg" />
         <input
           type="text"
@@ -61,15 +71,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBlogs }) => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleKeyPress}
-          className="w-full px-4 py-2 text-black rounded-full focus:outline-none"
+          className="w-full px-4 py-2 text-gray-400 bg-black rounded-full focus:outline-none"
         />
       </div>
       {result.length > 0 && (
-        <ul className="absolute top-full mt-2 w-full bg-white border rounded-lg shadow-md z-10">
-          {result.map((suggestion, index) => (
+        <ul className="absolute top-full mt-2 w-full bg-black border border-white rounded-lg shadow-md z-10">
+          {result.map((suggestion) => (
             <li
-              key={index}
-              className="px-4 py-2 hover:bg-blue-500 hover:text-white cursor-pointer transition-colors"
+              className="px-4 py-2 text-gray-400 hover:text-blue-500 hover:before:content-['↗'] hover:before:mr-2 hover:before:text-blue-500 cursor-pointer transition-colors"
               onClick={() => handleSuggestionClick(suggestion)}
             >
               {suggestion}
@@ -78,6 +87,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ setBlogs }) => {
         </ul>
       )}
     </div>
+
   );
 };
 

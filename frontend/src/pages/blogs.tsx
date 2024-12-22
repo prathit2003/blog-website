@@ -85,7 +85,7 @@ const Blogs = () => {
     getBlogs();
     getUserInfo();
     getProfiles();
-  }, [token, blogs]);
+  }, [token]);
   const toggleExpand = (id: number) => {
     setExpanded((prev) => (prev === id ? null : id));
   };

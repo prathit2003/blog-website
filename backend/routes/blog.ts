@@ -176,8 +176,10 @@ router.get("/my-blogs", middleware, async (req: Request, res: Response): Promise
 
 router.post("/searchblogs", middleware, async (req: Request, res: Response): Promise<void> => {
   const { word } = req.body;
+  console.log("Search word received:", word);
+
   try {
-    const response = prisma.post.findMany({
+    const response = await prisma.post.findMany({
       where: {
         title: {
           contains: word,
@@ -190,7 +192,8 @@ router.post("/searchblogs", middleware, async (req: Request, res: Response): Pro
         },
         tags: true,
       },
-    })
+    });
+    console.log("Prisma query result:", response);
     res.status(200).json({ response });
   } catch (error) {
     console.log(error);
@@ -202,7 +205,7 @@ router.post("/searchblogs", middleware, async (req: Request, res: Response): Pro
 router.post("/gettitles", middleware, async (req: Request, res: Response): Promise<void> => {
   const { title } = req.body;
   try {
-    const response = prisma.post.findMany({
+    const response = await prisma.post.findMany({
       where: {
         title: {
           contains: title,
