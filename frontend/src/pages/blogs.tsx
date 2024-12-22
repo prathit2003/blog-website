@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { HiMenu } from "react-icons/hi";
 import SearchBar from '../components/searchbar';
+import LoadingSkeleton from '../components/loadingskeleton';
 interface Blog {
   id: number;
   title: string;
@@ -21,6 +22,7 @@ const Blogs = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [profiles, setProfiles] = useState<string[]>([]);
+  const [loading, setloading] = useState(true);
   const [user, setUser] = useState<string>("Guest");
   const [expanded, setExpanded] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +43,7 @@ const Blogs = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        setloading(false);
         setBlogs(response.data);
       } catch (err) {
         setError("Failed to load blogs. Please try again later.");
@@ -55,9 +58,7 @@ const Blogs = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log("User Info:", response.data.data);
         const { username } = response.data.data;
-        console.log("User Info Username:", username);
         setUser(username);
       } catch (err) {
         setError("Failed to load user info.");
@@ -73,7 +74,6 @@ const Blogs = () => {
           },
         });
         const usernames = response.data.map((profile: { author: { username: string } }) => profile.author.username);
-        console.log("Extracted Usernames:", usernames);
         setProfiles(usernames);
       } catch (err) {
         setError("Failed to load profiles info.");
@@ -89,7 +89,9 @@ const Blogs = () => {
   const toggleExpand = (id: number) => {
     setExpanded((prev) => (prev === id ? null : id));
   };
-
+  if (loading) {
+    return <LoadingSkeleton />
+  }
   return (
     <div className="flex flex-col h-screen bg-black text-white">
       <header className="bg-black text-white flex items-center justify-between px-4 py-3 shadow-md border-b border-white">
