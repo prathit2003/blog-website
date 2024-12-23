@@ -1,12 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { MdFileUpload } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { FaImage, FaVideo } from "react-icons/fa";
 
 const Post: React.FC = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [toggle, setToggle] = useState(false);
+  const [media, setMedia] = useState<File | null>(null);
   const [publishStatus, setPublishStatus] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
+
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
 
@@ -22,17 +29,23 @@ const Post: React.FC = () => {
         console.error("No token found in localStorage");
         return;
       }
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("published", publishStatus.toString());
+      formData.append("tags", JSON.stringify(tags));
+      if (media) {
+        formData.append("media", media);
+      }
+
       const response = await axios.post(
         "http://localhost:3000/api/v1/blogs/post",
-        {
-          title: title,
-          content: content,
-          published: publishStatus,
-          tags: tags,
-        },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -44,13 +57,35 @@ const Post: React.FC = () => {
     }
   };
 
+  const handleMediaToggle = () => {
+    setToggle(!toggle);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setMedia(event.target.files[0]);
+      console.log("Selected file:", event.target.files[0]);
+    }
+  };
+
+  const triggerImagePicker = () => {
+    if (imageInputRef.current) {
+      imageInputRef.current.click();
+    }
+  };
+
+  const triggerVideoPicker = () => {
+    if (videoInputRef.current) {
+      videoInputRef.current.click();
+    }
+  };
+
   return (
     <div className="bg-black text-white min-h-screen flex justify-center items-center">
       <div className="bg-black border border-white p-6 rounded-lg shadow-lg max-w-lg w-full">
         <h1 className="text-3xl font-bold mb-6 text-white">Create a New Post</h1>
 
         <form className="space-y-4">
-
           <div>
             <label htmlFor="title" className="text-lg font-semibold text-white">
               Post Title
@@ -79,7 +114,6 @@ const Post: React.FC = () => {
             ></textarea>
           </div>
 
-
           <div>
             <label className="text-lg font-semibold text-white">Tags</label>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -93,8 +127,6 @@ const Post: React.FC = () => {
               ))}
             </div>
           </div>
-
-
           <div>
             <label className="text-lg font-semibold text-white">Publish Post</label>
             <div className="flex items-center mt-2">
@@ -110,25 +142,49 @@ const Post: React.FC = () => {
               </span>
             </div>
           </div>
-
           <div>
-            <label className="text-lg font-semibold text-white">Popular Tags</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {["#tech", "#coding", "#design", "#health", "#travel"].map(
-                (tag, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="px-2 py-1 border border-white rounded text-sm bg-black text-white hover:bg-white hover:text-black transition-colors"
-                    onClick={() => setContent((prev) => `${prev} ${tag}`)}
-                  >
-                    {tag}
-                  </button>
-                )
-              )}
-            </div>
+            <label className="text-lg font-semibold text-white">Upload Media</label>
+            <button
+              type="button"
+              className="flex items-center justify-center mt-2 px-4 py-2 border border-white rounded-md bg-black text-white hover:bg-white hover:text-black transition-colors"
+              onClick={handleMediaToggle}
+            >
+              <MdFileUpload className="mr-2" />
+              Upload Media
+            </button>
+            {toggle && (
+              <div className="mt-2 p-4 bg-black border border-white rounded-md flex gap-4">
+                <div
+                  className="cursor-pointer flex flex-col items-center"
+                  onClick={triggerImagePicker}
+                >
+                  <FaImage size={30} className="text-white" />
+                  <span className="text-sm text-white">Image</span>
+                </div>
+                <div
+                  className="cursor-pointer flex flex-col items-center"
+                  onClick={triggerVideoPicker}
+                >
+                  <FaVideo size={30} className="text-white" />
+                  <span className="text-sm text-white">Video</span>
+                </div>
+                <input
+                  type="file"
+                  ref={imageInputRef}
+                  style={{ display: "none" }}
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+                <input
+                  type="file"
+                  ref={videoInputRef}
+                  style={{ display: "none" }}
+                  accept="video/*"
+                  onChange={handleFileChange}
+                />
+              </div>
+            )}
           </div>
-
 
           <button
             type="button"

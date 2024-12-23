@@ -8,7 +8,7 @@ const Home: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const token = localStorage.getItem("authtoken") || "";
   const refreshtoken = localStorage.getItem("refreshtoken") || "";
-  scheduleTokenRefresh({ token }, { reftoken: refreshtoken });
+  scheduleTokenRefresh(token, refreshtoken);
 
   const handleToggle = (index: number) => {
     if (activeIndex === index) {
@@ -17,7 +17,6 @@ const Home: React.FC = () => {
       setActiveIndex(index);
     }
   };
-
   return (
     <>
       <AppBar />

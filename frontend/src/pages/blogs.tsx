@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { HiMenu } from "react-icons/hi";
+import { IoHeartOutline } from "react-icons/io5";
+import { FaCommentAlt } from "react-icons/fa";
 import SearchBar from '../components/searchbar';
 import LoadingSkeleton from '../components/loadingskeleton';
+
 interface Blog {
   id: number;
   title: string;
@@ -141,8 +144,8 @@ const Blogs = () => {
                     {expanded === blog.id ? 'Show Less' : 'Read More'}
                   </button>
                   <div className="flex gap-4">
-                    <button className="flex items-center gap-1 hover:text-sky-400 transition-colors">❤️ <span>{blog.likes}</span></button>
-                    <button className="flex items-center gap-1 hover:text-sky-400 transition-colors">💬 <span>{blog.comments}</span></button>
+                    <button className="flex items-center gap-1 hover:text-sky-400 transition-colors"><IoHeartOutline /><span>{blog.likes}</span></button>
+                    <button className="flex items-center gap-1 hover:text-sky-400 transition-colors"><FaCommentAlt /><span>{blog.comments}</span></button>
                   </div>
                 </div>
               </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { HiMenu } from "react-icons/hi";
 import LoadingSkeleton from '../components/loadingskeleton';
+
 interface Blog {
   id: number;
   title: string;
@@ -34,7 +35,6 @@ const myBlogs = () => {
       navigate("/signin");
       return;
     }
-
 
     const getBlogs = async () => {
       try {

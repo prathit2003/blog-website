@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import refreshtoken from "./tokenexpiry";
-function scheduleTokenRefresh({ token }: { token: string }, { reftoken }: { reftoken: string }) {
+function scheduleTokenRefresh(token: string, reftoken: string) {
   const decoded = jwtDecode<any>(token);
   const expiresAt = decoded.exp ? decoded.exp * 1000 : Date.now() + 5 * 60 * 1000;
   const now = Date.now();
@@ -9,7 +9,7 @@ function scheduleTokenRefresh({ token }: { token: string }, { reftoken }: { reft
   if (timeout > 0) {
     setTimeout(refreshtoken, timeout);
   } else {
-    refreshtoken({ refreshtoken: reftoken });
+    refreshtoken(reftoken);
   }
 }
 
