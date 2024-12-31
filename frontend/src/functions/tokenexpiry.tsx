@@ -6,7 +6,9 @@ const refreshtoken = async (refreshtoken: string) => {
       Authorization: `${refreshtoken}`,
     }
   })
-  console.log(response.data.response);
-  localStorage.setItem("authtoken", response.data.response);
+  const token = localStorage.getItem("authtoken");
+  console.log(`old token ${token}`);
+  console.log("new token:", response.data.authtoken);
+  localStorage.setItem("authtoken", response.data.authtoken);
 }
 export default refreshtoken;

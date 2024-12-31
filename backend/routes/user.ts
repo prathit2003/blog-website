@@ -165,8 +165,8 @@ Router.get("/info", middleware, async (req: Request, res: Response): Promise<voi
 Router.get("/token", tokengen, (req: Request, res: Response) => {
   const userid = req.auth?.userId;
   const emailid = req.auth?.email;
-  const accessToken = jwt.sign({ userId: userid, email: emailid }, JWT_SECRET, { expiresIn: "1h" });
-  res.json({ accessToken });
+  const authtoken = jwt.sign({ userId: userid, email: emailid }, JWT_SECRET, { expiresIn: "1h" });
+  res.json(authtoken);
 })
 
 

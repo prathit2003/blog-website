@@ -30,6 +30,11 @@ const Post: React.FC = () => {
         return;
       }
 
+      if (!title || !content) {
+        alert("Title and content are required.");
+        return;
+      }
+
       const formData = new FormData();
       formData.append("title", title);
       formData.append("content", content);
@@ -37,6 +42,11 @@ const Post: React.FC = () => {
       formData.append("tags", JSON.stringify(tags));
       if (media) {
         formData.append("media", media);
+      }
+
+      // Log FormData contents
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
       }
 
       const response = await axios.post(
@@ -50,12 +60,13 @@ const Post: React.FC = () => {
         }
       );
       console.log("Response data:", response.data);
-      navigate("/home");
+      navigate("/blogs");
       alert(response.data.message);
     } catch (err) {
       console.error("Error sending post data:", err);
     }
   };
+
 
   const handleMediaToggle = () => {
     setToggle(!toggle);
@@ -63,6 +74,11 @@ const Post: React.FC = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
+      const selectedFiles = Array.from(event.target.files);
+      if (selectedFiles.length > 4) {
+        alert("You can upload a maximum of 4 files.");
+        return;
+      }
       setMedia(event.target.files[0]);
       console.log("Selected file:", event.target.files[0]);
     }

@@ -2,50 +2,79 @@ import express, { Router } from "express";
 import middleware from "../middleware";
 import { Request, Response } from "express";
 import { PrismaClient } from '@prisma/client';
+import multer from 'multer';
+
+
 const router = express.Router();
 const prisma = new PrismaClient();
-
-router.post("/post", middleware, async (req: Request, res: Response): Promise<void> => {
-  const userId = req.auth?.userId as string;
-  const { title, content, published, tags } = req.body;
-  if (!title || !content || !userId || !Array.isArray(tags)) {
-    res.status(400).json({ success: false, message: 'invalid inputs,some feilds are missing' })
-    return;
-  }
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter(req, file, callback) {
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (allowedTypes.includes(file.mimetype)) {
+      callback(null, true);
+    } else {
+      callback(new Error("invalid file type. only JPEG, PNG, and pdf allowed."));
+    }
+  },
+});
+router.post("/post", middleware, upload.array("media"), async (req: Request, res: Response): Promise<void> => {
   try {
-    const tagData = tags.map((tag: string) => ({
+    const files = req.files as Express.Multer.File[];
+    const userId = req.auth?.userId as string;
+    const { title, content, published, tags } = req.body;
+
+    const parsedTags = typeof tags === "string" ? JSON.parse(tags) : tags;
+    const isPublished = published === "true";
+    if (!title || !content || !userId || !Array.isArray(parsedTags)) {
+      res.status(400).json({ success: false, message: "Invalid inputs, some fields are missing" });
+      return;
+    }
+
+    const tagData = parsedTags.map((tag: string) => ({
       where: { name: tag },
       create: { name: tag },
     }));
+
+    const media = files?.map((file) => ({
+      name: file.originalname,
+      mimeType: file.mimetype,
+      data: file.buffer,
+    })) || [];
+
     const newPost = await prisma.post.create({
       data: {
         title,
         content,
-        published: published ?? false,
+        published: isPublished,
         authorId: parseInt(userId),
         likes: 0,
         comments: 0,
+        media,
         tags: {
           connectOrCreate: tagData,
         },
       },
       include: { tags: true },
     });
+
     await Promise.all(
-      tags.map((tag: string) =>
+      parsedTags.map((tag: string) =>
         prisma.tag.update({
           where: { name: tag },
           data: { usageCount: { increment: 1 } },
         })
       )
     );
-    res.status(201).json({ success: true, post: newPost });
+
+    res.status(200).json({ success: true, post: newPost });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Failed to create post' });
-    return;
+    res.status(500).json({ success: false, message: "Failed to create post" });
   }
-})
+});
 
 router.put("/update", middleware, async (req: Request, res: Response): Promise<void> => {
   const id = req.auth?.userId;
