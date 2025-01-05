@@ -11,6 +11,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
+  media     Json?  
   firstname String
   username  String   @unique
   posts     Post[]
@@ -23,7 +24,7 @@ model Post {
   content    String
   authorId   Int
   likes      Int
-  comments   Int
+  comments   Json?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   published  Boolean    @default(false)

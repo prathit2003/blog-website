@@ -14,7 +14,13 @@ interface Media {
   mimeType: string;
   data: string;
 }
-
+interface CommentCreate {
+  content: string;
+  authorId: number;
+}
+interface Comments {
+  create: CommentCreate[];
+}
 interface Blog {
   id: number;
   title: string;
@@ -25,7 +31,7 @@ interface Blog {
   updatedAt: string;
   media: Media[];
   likes: number;
-  comments: number;
+  comments: Comments;
   published: boolean;
   tags: { name: string; id: number }[];
 }
@@ -63,7 +69,9 @@ const Blogs = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-
+        console.log(blogsRes.data);
+        console.log(userRes.data.data.username);
+        console.log(profilesRes.data);
         setBlogs(blogsRes.data);
         setUser(userRes.data.data.username);
         setProfiles(
@@ -77,7 +85,6 @@ const Blogs = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [token, navigate]);
 
@@ -96,7 +103,7 @@ const Blogs = () => {
           className="text-2xl font-bold font-merriweather"
           onClick={() => navigate("/home")}
         >
-          MyBlog
+          blog-website
         </button>
         <SearchBar setBlogs={setBlogs} />
         <button onClick={toggleMenu} className="text-lg hover:text-sky-400">
@@ -104,11 +111,10 @@ const Blogs = () => {
         </button>
       </header>
 
-      {/* Error Banner */}
       {error && <div className="bg-red-500 text-center py-2">{error}</div>}
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+
         <aside className="w-1/4 p-6 border-r border-[#F2E9E4] overflow-y-auto">
           <h2 className="text-xl font-semibold mb-4 text-sky-400">Trending Profiles</h2>
           <ul>
@@ -121,7 +127,6 @@ const Blogs = () => {
           </ul>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {blogs
             .filter((blog) => !hiddenBlogs.includes(blog.id))
@@ -187,7 +192,7 @@ const Blogs = () => {
                     </button>
                     <button className="flex items-center gap-2 hover:text-sky-400">
                       <FaCommentAlt />
-                      <span>Comment ({blog.comments})</span>
+                      <span>Comment ({blog.comments.create.length})</span>
                     </button>
                     <button className="flex items-center gap-2 hover:text-sky-400">
                       <FaShare />
@@ -200,7 +205,6 @@ const Blogs = () => {
         </main>
       </div>
 
-      {/* Menu */}
       {showMenu && (
         <div className="fixed top-0 right-0 w-64 h-full bg-[#22223B] p-4 z-50 shadow-lg">
           <button className="mb-6 text-right hover:text-sky-400" onClick={toggleMenu}>

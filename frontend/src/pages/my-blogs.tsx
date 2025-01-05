@@ -14,6 +14,10 @@ interface Media {
   mimeType: string;
   data: string;
 }
+interface comment {
+  content: string;
+  authorId: number;
+}
 
 interface Blog {
   id: number;
@@ -25,7 +29,7 @@ interface Blog {
   updatedAt: string;
   media: Media[];
   likes: number;
-  comments: number;
+  comments: comment[];
   published: boolean;
   tags: { name: string; id: number }[];
 }
@@ -34,11 +38,14 @@ const Blogs = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [profiles, setProfiles] = useState<string[]>([]);
+  const [isempty, setempty] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<string>("Guest");
   const [error, setError] = useState<string | null>(null);
   const [hiddenBlogs, setHiddenBlogs] = useState<number[]>([]);
   const [visibleMenu, setVisibleMenu] = useState<number | null>(null);
+  const [likedBlogs, setLikedBlogs] = useState<number[]>([]);
+  const [activeBlogId, setActiveBlogId] = useState<number | null>(null);
 
   const toggleMenu = () => setShowMenu(!showMenu);
   const navigate = useNavigate();
@@ -63,7 +70,12 @@ const Blogs = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-
+        console.log(blogsRes.data);
+        console.log(userRes.data.data.username);
+        console.log(profilesRes.data);
+        if (!blogsRes.data || blogsRes.data.length === 0) {
+          setempty(true);
+        }
         setBlogs(blogsRes.data);
         setUser(userRes.data.data.username);
         setProfiles(
@@ -86,11 +98,28 @@ const Blogs = () => {
     setVisibleMenu(null);
   };
 
+  const handleLikes = (blogId: number) => {
+    setLikedBlogs((prev) =>
+      prev.includes(blogId) ? prev.filter((id) => id !== blogId) : [...prev, blogId]
+    );
+  };
+
+  const handleComment = async (blogId: number) => {
+    setActiveBlogId(blogId);
+    const response = await axios.get(`http://localhost:3000/api/v1/blogs/my-blogs`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlogs(response.data);
+  };
+
+  const handleShare = (blogId: number) => {
+    console.log(`Blog shared: ${blogId}`);
+  };
+
   if (loading) return <LoadingSkeleton />;
 
   return (
-    <div className="flex flex-col h-screen bg-[#22223B] text-[#F2E9E4]">
-
+    <div className="flex flex-col h-screen bg-[#22223B] text-[#F2E9E4]" style={{ scrollBehavior: "smooth" }}>
       <header className="flex items-center justify-between px-4 py-3 shadow-md border-b border-[#F2E9E4]">
         <button
           className="text-2xl font-bold font-merriweather"
@@ -104,11 +133,9 @@ const Blogs = () => {
         </button>
       </header>
 
-
       {error && <div className="bg-red-500 text-center py-2">{error}</div>}
 
       <div className="flex flex-1 overflow-hidden">
-
         <aside className="w-1/4 p-6 border-r border-[#F2E9E4] overflow-y-auto">
           <h2 className="text-xl font-semibold mb-4 text-sky-400">Trending Profiles</h2>
           <ul>
@@ -121,7 +148,6 @@ const Blogs = () => {
           </ul>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 p-6 overflow-y-auto">
           {blogs
             .filter((blog) => !hiddenBlogs.includes(blog.id))
@@ -181,22 +207,66 @@ const Blogs = () => {
 
                 <div className="flex justify-between items-center mt-4">
                   <div className="flex gap-4">
-                    <button className="flex items-center gap-2 hover:text-sky-400">
+                    <button
+                      className={`flex items-center gap-2 ${likedBlogs.includes(blog.id) ? "text-red-500" : "hover:text-sky-400"
+                        } transition-colors duration-300`}
+                      onClick={() => handleLikes(blog.id)}
+                    >
                       <IoHeartOutline />
                       <span>Like ({blog.likes})</span>
                     </button>
-                    <button className="flex items-center gap-2 hover:text-sky-400">
+                    <button
+                      className="flex items-center gap-2 hover:text-sky-400"
+                      onClick={() => handleComment(blog.id)}
+                    >
                       <FaCommentAlt />
-                      <span>Comment ({blog.comments})</span>
+                      <span>Comment ({blog.comments.length})</span>
                     </button>
-                    <button className="flex items-center gap-2 hover:text-sky-400">
+                    <button className="flex items-center gap-2 hover:text-sky-400" onClick={() => handleShare(blog.id)}>
                       <FaShare />
                       <span>Share</span>
                     </button>
                   </div>
                 </div>
+
+                {activeBlogId === blog.id && (
+                  <div className="mt-4 p-4 border border-sky-400 rounded-lg bg-[#1A1A2E]">
+                    <div className="flex items-center mb-3">
+                      <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300"></div>
+                      <span className="ml-3 text-sky-400">{blog.authorId}</span>
+                    </div>
+                    <textarea
+                      className="w-full p-2 border border-gray-500 rounded-lg bg-[#22223B] text-white"
+                      placeholder="Write your comment here..."
+                    />
+                    <button className="mt-3 bg-sky-400 text-white px-4 py-2 rounded-md hover:bg-sky-500">
+                      Post Comment
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
+          {isempty && (
+            <div className="flex flex-col items-center justify-center h-full text-center bg-[#22223B] text-[#F2E9E4]">
+              <h2 className="text-2xl font-semibold mb-4">No Blogs Yet</h2>
+              <p className="text-sm mb-6">
+                Start your blogging journey by creating your first blog now.
+              </p>
+              <button
+                onClick={() => navigate("/post")}
+                className="bg-sky-400 text-[#22223B] px-4 py-2 rounded-md font-medium hover:bg-sky-500"
+              >
+                Create a Blog
+              </button>
+            </div>
+          )}
+
+          <a
+            href="/trending"
+            className="text-sky-400 hover:text-sky-500 transition-colors duration-300 block text-center mt-6"
+          >
+            Discover More
+          </a>
         </main>
       </div>
 

@@ -77,7 +77,7 @@ router.post("/post", middleware, upload.array("media"), async (req: Request, res
 });
 
 router.put("/update", middleware, async (req: Request, res: Response): Promise<void> => {
-  const id = req.auth?.userId;
+  const { id } = req.query;
   const { title, content, published, tags } = req.body;
   try {
     if (!title || !content || !id || Array.isArray(tags)) {
@@ -250,6 +250,34 @@ router.post("/gettitles", middleware, async (req: Request, res: Response): Promi
   } catch (error) {
     res.status(500).json({ error });
     console.log(error);
+  }
+})
+
+router.get("/updatelikes", middleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.query;
+    const response = await prisma.post.update({
+      where: { id: Number(id) },
+      data: {
+        likes: { increment: 1 },
+      }
+    });
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).send({ message: "error updating likes", err });
+  }
+});
+router.get("/updatecomments", middleware, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.query;
+    const response = await prisma.post.update({
+      where: { id: Number(id) },
+      data: {
+        comments: { increment: 1 },
+      }
+    })
+  } catch (err) {
+    res.status(500).send({ message: "error updating comments", err });
   }
 })
 
