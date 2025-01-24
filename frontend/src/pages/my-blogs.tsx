@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { HiMenu } from "react-icons/hi";
-import { IoHeartOutline } from "react-icons/io5";
+import { IoHeartOutline } from "react-icons/io5"; import { FaUserCircle } from "react-icons/fa";
 import { FaCommentAlt, FaShare } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import SearchBar from "../components/searchbar";
@@ -14,21 +14,31 @@ interface Media {
   mimeType: string;
   data: string;
 }
+interface profile {
+  username: string;
+  profilepictureurl: string;
+}
 interface comment {
   content: string;
   authorId: number;
 }
-
+interface likes {
+  authorId: number;
+  postId: number;
+}
 interface Blog {
   id: number;
   title: string;
-  author: { username: string };
+  author: {
+    username: string,
+    profilepictureurl: string;
+  };
   authorId: number;
   content: string;
   createdAt: string;
   updatedAt: string;
   media: Media[];
-  likes: number;
+  likes: likes[];
   comments: comment[];
   published: boolean;
   tags: { name: string; id: number }[];
@@ -37,8 +47,10 @@ interface Blog {
 const Blogs = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [profiles, setProfiles] = useState<string[]>([]);
+  const [profiles, setProfiles] = useState<profile[]>([]);
   const [isempty, setempty] = useState(false);
+  const [profilepictureurl, setprofilepictureurl] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<string>("Guest");
   const [error, setError] = useState<string | null>(null);
@@ -70,19 +82,21 @@ const Blogs = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-        console.log(blogsRes.data);
+        console.log(blogsRes.data.post);
         console.log(userRes.data.data.username);
         console.log(profilesRes.data);
         if (!blogsRes.data || blogsRes.data.length === 0) {
           setempty(true);
         }
-        setBlogs(blogsRes.data);
+        setBlogs(blogsRes.data.post);
+        setLikedBlogs(blogsRes.data.blogIds);
+        setprofilepictureurl(userRes.data.data.profilePicture);
         setUser(userRes.data.data.username);
-        setProfiles(
-          profilesRes.data.map(
-            (profile: { author: { username: string } }) => profile.author.username
-          )
-        );
+        const mappedProfiles: profile[] = profilesRes.data.map((post: any) => ({
+          username: post.author.username,
+          profilepictureurl: post.author.profilePicture,
+        }));
+        setProfiles(mappedProfiles);
         setLoading(false);
       } catch (err) {
         setError("Failed to load data. Please try again later.");
@@ -140,9 +154,16 @@ const Blogs = () => {
           <h2 className="text-xl font-semibold mb-4 text-sky-400">Trending Profiles</h2>
           <ul>
             {profiles.map((profile) => (
-              <li key={profile} className="mb-3 flex items-center gap-3">
-                <div className="w-10 h-10 bg-sky-600 rounded-full"></div>
-                <span className="hover:text-sky-400">{profile}</span>
+              <li key={profile.username} className="mb-3 flex items-center gap-3">
+                <div
+                  className="w-10 h-10 bg-sky-600 rounded-full"
+                  style={{
+                    backgroundImage: `url(${profile.profilepictureurl || '/default-profile.png'})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                ></div>
+                <span className="hover:text-sky-400">{profile.username}</span>
               </li>
             ))}
           </ul>
@@ -213,7 +234,7 @@ const Blogs = () => {
                       onClick={() => handleLikes(blog.id)}
                     >
                       <IoHeartOutline />
-                      <span>Like ({blog.likes})</span>
+                      <span>Like ({blog.likes.length})</span>
                     </button>
                     <button
                       className="flex items-center gap-2 hover:text-sky-400"
@@ -276,7 +297,15 @@ const Blogs = () => {
             ✖
           </button>
           <div className="flex items-center mb-6">
-            <div className="w-10 h-10 bg-sky-600 rounded-full"></div>
+            {profilepictureurl ? (
+              <img
+                src={profilepictureurl}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border-2 border-[#F2E9E4]"
+              />
+            ) : (
+              <FaUserCircle className="text-[#F2E9E4] text-3xl" />
+            )}
             <span className="ml-3">{user}</span>
           </div>
           <ul className="space-y-4">

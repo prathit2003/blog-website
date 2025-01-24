@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaUserCircle } from 'react-icons/fa';
 import { HiMenu } from "react-icons/hi";
-import { IoHeartOutline } from "react-icons/io5";
+import { IoHeartOutline, IoHeartSharp } from "react-icons/io5";
 import { FaCommentAlt, FaShare } from "react-icons/fa";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import SearchBar from "../components/searchbar";
@@ -14,18 +15,32 @@ interface Media {
    mimeType: string;
    data: string;
 }
-
+interface profile {
+   username: string;
+   profilepictureurl: string;
+}
+interface comment {
+   content: string;
+   authorId: number;
+}
+interface likes {
+   authorId: number;
+   postId: number;
+}
 interface Blog {
    id: number;
    title: string;
-   author: { username: string };
+   author: {
+      username: string,
+      profilepictureurl: string;
+   };
    authorId: number;
    content: string;
    createdAt: string;
    updatedAt: string;
    media: Media[];
-   likes: number;
-   comments: number;
+   likes: likes[];
+   comments: comment[];
    published: boolean;
    tags: { name: string; id: number }[];
 }
@@ -33,13 +48,16 @@ interface Blog {
 const Blogs = () => {
    const [showMenu, setShowMenu] = useState(false);
    const [blogs, setBlogs] = useState<Blog[]>([]);
-   const [profiles, setProfiles] = useState<string[]>([]);
+   const [profiles, setProfiles] = useState<profile[]>([]);
+   const [likedblogs, setlikedblogs] = useState<number[]>([]);
    const [loading, setLoading] = useState(true);
    const [user, setUser] = useState<string>("Guest");
    const [error, setError] = useState<string | null>(null);
    const [hiddenBlogs, setHiddenBlogs] = useState<number[]>([]);
    const [visibleMenu, setVisibleMenu] = useState<number | null>(null);
-
+   const [profilepictureurl, setprofilepictureurl] = useState("");
+   const [visibleComments, setVisibleComments] = useState<number | null>(null);
+   const [commentInput, setCommentInput] = useState<string>("");
    const toggleMenu = () => setShowMenu(!showMenu);
    const navigate = useNavigate();
    const token = localStorage.getItem("authtoken");
@@ -64,13 +82,17 @@ const Blogs = () => {
                }),
             ]);
 
-            setBlogs(blogsRes.data);
+            setBlogs(blogsRes.data.top10post);
+            setlikedblogs(blogsRes.data.blogIds);
             setUser(userRes.data.data.username);
-            setProfiles(
-               profilesRes.data.map(
-                  (profile: { author: { username: string } }) => profile.author.username
-               )
-            );
+            setprofilepictureurl(userRes.data.data.profilePicture);
+            const mappedprofiles: profile[] = profilesRes.data.map((post: any) => (
+               {
+                  username: post.author.username,
+                  profilepictureurl: post.author.profilePicture,
+               }
+            ))
+            setProfiles(mappedprofiles);
             setLoading(false);
          } catch (err) {
             setError("Failed to load data. Please try again later.");
@@ -86,6 +108,48 @@ const Blogs = () => {
       setVisibleMenu(null);
    };
 
+   const toggleComments = (blogId: number) => {
+      setVisibleComments(visibleComments === blogId ? null : blogId);
+   };
+   const handlelikes = async (blogId: number) => {
+      try {
+         const response = await axios.post(`http://localhost:3000/api/v1/blogs/${blogId}/updatelikes`, {
+
+         }, {
+            headers: { Authorization: `Bearer ${token}` },
+         })
+         const updatedBlog = response.data;
+
+         setBlogs((prevBlogs) =>
+            prevBlogs.map((blog) =>
+               blog.id === updatedBlog.id ? updatedBlog : blog
+            )
+         );
+      } catch (err) {
+         console.log(err);
+      }
+   }
+
+   const handleAddComment = async (blogId: number) => {
+      if (!commentInput.trim()) return;
+      try {
+         const response = await axios.post(`http://localhost:3000/api/v1/blogs/${blogId}/updatecomments`, {
+            content: commentInput
+         }, {
+            headers: { Authorization: `Bearer ${token}` },
+         })
+         const updatedBlog = response.data;
+
+         setBlogs((prevBlogs) =>
+            prevBlogs.map((blog) =>
+               blog.id === updatedBlog.id ? updatedBlog : blog
+            ))
+      }
+      catch (err) {
+         console.log(err);
+      }
+      setCommentInput("");
+   };
    if (loading) return <LoadingSkeleton />;
 
    return (
@@ -104,24 +168,32 @@ const Blogs = () => {
             </button>
          </header>
 
-         {/* Error Banner */}
          {error && <div className="bg-red-500 text-center py-2">{error}</div>}
 
          <div className="flex flex-1 overflow-hidden">
-            {/* Sidebar */}
+
             <aside className="w-1/4 p-6 border-r border-[#F2E9E4] overflow-y-auto">
                <h2 className="text-xl font-semibold mb-4 text-sky-400">Trending Profiles</h2>
                <ul>
                   {profiles.map((profile) => (
-                     <li key={profile} className="mb-3 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-sky-600 rounded-full"></div>
-                        <span className="hover:text-sky-400">{profile}</span>
+                     <li key={profile.username} className="mb-3 flex items-center gap-3">
+                        <div className="w-10 h-10 flex justify-center items-center bg-sky-600 rounded-full">
+                           {profile.profilepictureurl ? (
+                              <img
+                                 src={profile.profilepictureurl}
+                                 alt={`${profile.username}'s profile`}
+                                 className="w-full h-full rounded-full object-cover"
+                              />
+                           ) : (
+                              <FaUserCircle className="text-white text-3xl" />
+                           )}
+                        </div>
+                        <span className="hover:text-sky-400">{profile.username}</span>
                      </li>
                   ))}
                </ul>
             </aside>
 
-            {/* Main Content */}
             <main className="flex-1 p-6 overflow-y-auto">
                {blogs
                   .filter((blog) => !hiddenBlogs.includes(blog.id))
@@ -181,13 +253,26 @@ const Blogs = () => {
 
                         <div className="flex justify-between items-center mt-4">
                            <div className="flex gap-4">
-                              <button className="flex items-center gap-2 hover:text-sky-400">
-                                 <IoHeartOutline />
-                                 <span>Like ({blog.likes})</span>
+                              <button
+                                 className={`flex items-center gap-2 ${likedblogs.includes(blog.id) ? "text-red-500" : "hover:text-sky-400"
+                                    }`}
+                                 onClick={() => {
+                                    handlelikes(blog.id);
+                                 }}
+                              >
+                                 {likedblogs.includes(blog.id) ? (
+                                    <IoHeartSharp className="text-xl" />
+                                 ) : (
+                                    <IoHeartOutline className="text-xl" />
+                                 )}
+                                 <span>Like ({blog.likes.length})</span>
                               </button>
-                              <button className="flex items-center gap-2 hover:text-sky-400">
+                              <button
+                                 className="flex items-center gap-2 hover:text-sky-400"
+                                 onClick={() => toggleComments(blog.id)}
+                              >
                                  <FaCommentAlt />
-                                 <span>Comment ({blog.comments})</span>
+                                 <span>Comment ({blog.comments ? blog.comments.length : 0})</span>
                               </button>
                               <button className="flex items-center gap-2 hover:text-sky-400">
                                  <FaShare />
@@ -195,19 +280,69 @@ const Blogs = () => {
                               </button>
                            </div>
                         </div>
+                        {visibleComments === blog.id && (
+                           <div className="mt-4 border-t border-gray-600 pt-4">
+                              <h4 className="font-semibold mb-2">Comments</h4>
+
+                              {(!blog.comments || blog.comments.length === 0) ? (
+                                 <p className="text-sm text-gray-400 mb-4">No comments available.</p>
+                              ) : (
+                                 <ul className="space-y-4">
+                                    {blog.comments.map((comment, index) => (
+                                       <li key={index} className="flex items-start gap-3">
+
+                                          <div className="w-8 h-8 bg-gray-600 rounded-full flex-shrink-0"></div>
+                                          <div>
+
+                                             <p className="text-sm font-semibold text-sky-400">
+                                                User ID: {comment.authorId}
+                                             </p>
+
+                                             <p className="text-sm text-gray-300">{comment.content}</p>
+                                          </div>
+                                       </li>
+                                    ))}
+                                 </ul>
+                              )}
+
+                              <div className="mt-4 flex gap-2">
+                                 <input
+                                    type="text"
+                                    className="flex-1 px-2 py-1 bg-gray-700 border border-gray-500 rounded-md text-gray-200"
+                                    value={commentInput}
+                                    onChange={(e) => setCommentInput(e.target.value)}
+                                    placeholder="Add a comment"
+                                 />
+                                 <button
+                                    className="px-4 py-1 bg-sky-600 text-white rounded-md hover:bg-sky-700"
+                                    onClick={() => handleAddComment(blog.id)}
+                                 >
+                                    Post
+                                 </button>
+                              </div>
+                           </div>
+                        )}
                      </div>
                   ))}
             </main>
          </div>
 
-         {/* Menu */}
+
          {showMenu && (
             <div className="fixed top-0 right-0 w-64 h-full bg-[#22223B] p-4 z-50 shadow-lg">
                <button className="mb-6 text-right hover:text-sky-400" onClick={toggleMenu}>
                   ✖
                </button>
                <div className="flex items-center mb-6">
-                  <div className="w-10 h-10 bg-sky-600 rounded-full"></div>
+                  {profilepictureurl ? (
+                     <img
+                        src={profilepictureurl}
+                        alt="Profile"
+                        className="w-10 h-10 rounded-full border-2 border-[#F2E9E4]"
+                     />
+                  ) : (
+                     <FaUserCircle className="text-[#F2E9E4] text-3xl" />
+                  )}
                   <span className="ml-3">{user}</span>
                </div>
                <ul className="space-y-4">

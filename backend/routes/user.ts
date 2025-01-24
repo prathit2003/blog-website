@@ -3,6 +3,7 @@ import { z } from "zod";
 import { PrismaClient } from '@prisma/client';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import multer from 'multer';
 import dotenv from "dotenv";
 import { Request, Response } from "express";
 import middleware from "../middleware";
@@ -15,7 +16,15 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN || "refresh";
 const prisma = new PrismaClient();
 const Router = express.Router();
 
-
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+const upload = multer({ storage });
 const signupschema = z.object({
   email: z.string().email({ message: "invalid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }).max(50, { message: "Password must be less than 50 characters long" }),
@@ -141,6 +150,7 @@ Router.get("/info", middleware, async (req: Request, res: Response): Promise<voi
       select: {
         email: true,
         firstname: true,
+        profilePicture: true,
         username: true,
         posts: true,
       },
@@ -168,6 +178,27 @@ Router.get("/token", tokengen, (req: Request, res: Response) => {
   const authtoken = jwt.sign({ userId: userid, email: emailid }, JWT_SECRET, { expiresIn: "1h" });
   res.json(authtoken);
 })
+Router.post('/upload-profile-picture', upload.single('profilePicture'), middleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.body.userId;
+    if (!req.file) {
+      res.status(400).json({ error: 'No file uploaded' });
+      return
+    }
+    const profilePictureUrl = `/uploads/${req.file.filename}`;
 
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(userId) },
+      data: { profilePicture: profilePictureUrl },
+    });
+
+    res.status(200).json({ message: 'Profile picture updated successfully', user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error updating profile picture' });
+  }
+});
+
+module.exports = Router;
 
 export default Router;

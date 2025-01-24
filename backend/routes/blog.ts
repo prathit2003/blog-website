@@ -6,7 +6,9 @@ import multer from 'multer';
 
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -50,8 +52,6 @@ router.post("/post", middleware, upload.array("media"), async (req: Request, res
         content,
         published: isPublished,
         authorId: parseInt(userId),
-        likes: 0,
-        comments: 0,
         media,
         tags: {
           connectOrCreate: tagData,
@@ -122,22 +122,38 @@ router.put("/update", middleware, async (req: Request, res: Response): Promise<v
 });
 
 router.get("/get-blogs", middleware, async (req: Request, res: Response): Promise<void> => {
+  const userid = req.auth?.userId;
   try {
-    const Response = await prisma.post.findMany({
+    const post = await prisma.post.findMany({
       where: { published: true },
       take: 10,
       include: {
         author: {
-          select: { username: true },
+          select: {
+            username: true,
+            profilePicture: true,
+          },
         },
         tags: true,
+        likes: true,
+        comments: true
       },
     })
-    const shuffledPosts = Response.sort(() => 0.5 - Math.random());
+    const shuffledPosts = post.sort(() => 0.5 - Math.random());
     if (!shuffledPosts) {
       res.status(200).json({ message: "no post available" });
     }
-    res.status(200).json(shuffledPosts);
+    const blogids = await prisma.like.findMany({
+      where: {
+        authorId: Number(userid),
+      }
+    })
+    let blogIds = blogids.map(post => post.postId);
+    const response = {
+      blogIds,
+      shuffledPosts,
+    }
+    res.status(200).json(response);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'failed to fetch blogs' });
@@ -146,38 +162,61 @@ router.get("/get-blogs", middleware, async (req: Request, res: Response): Promis
 
 router.get("/profiles", middleware, async (req: Request, res: Response): Promise<void> => {
   try {
-    const response = await prisma.post.findMany({
-      where: { published: true },
-      orderBy: { likes: 'desc' },
+    const top5post = await prisma.post.findMany({
       take: 5,
+      orderBy: {
+        likes: {
+          _count: 'desc',
+        },
+      },
       select: {
-        authorId: true,
         author: {
           select: {
             username: true,
+            profilePicture: true,
           },
-        },
+        }
       }
     })
-    res.status(200).json(response);
+    res.status(200).json(top5post);
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "Internal server error" });
   }
 })
 
 router.get("/trending", middleware, async (req: Request, res: Response): Promise<void> => {
+  const userid = req.auth?.userId;
   try {
-    const response = await prisma.post.findMany({
-      where: { published: true },
-      orderBy: { likes: 'desc' },
+    const top10post = await prisma.post.findMany({
       take: 5,
+      orderBy: {
+        likes: {
+          _count: 'desc',
+        },
+      },
       include: {
         author: {
-          select: { username: true },
+          select: {
+            username: true,
+            profilePicture: true,
+          },
         },
         tags: true,
-      },
+        likes: true,
+        comments: true
+      }
     })
+    const blogids = await prisma.like.findMany({
+      where: {
+        authorId: Number(userid),
+      }
+    })
+    let blogIds = blogids.map(post => post.postId);
+    const response = {
+      blogIds,
+      top10post,
+    }
     res.status(200).json(response);
   } catch (error) {
     console.log(error);
@@ -186,16 +225,31 @@ router.get("/trending", middleware, async (req: Request, res: Response): Promise
 router.get("/my-blogs", middleware, async (req: Request, res: Response): Promise<void> => {
   const userid = req.auth?.userId;
   try {
-    const response = await prisma.post.findMany({
+    const post = await prisma.post.findMany({
       where: { authorId: Number(userid) }
       ,
       include: {
         author: {
-          select: { username: true },
+          select: {
+            username: true,
+            profilePicture: true,
+          },
         },
         tags: true,
+        likes: true,
+        comments: true
       },
     });
+    const blogids = await prisma.like.findMany({
+      where: {
+        authorId: Number(userid),
+      }
+    })
+    let blogIds = blogids.map(post => post.postId);
+    const response = {
+      blogIds,
+      post,
+    }
     res.status(200).json(response);
   } catch (error) {
     console.log(error);
@@ -217,9 +271,14 @@ router.post("/searchblogs", middleware, async (req: Request, res: Response): Pro
       },
       include: {
         author: {
-          select: { username: true },
+          select: {
+            username: true,
+            profilePicture: true,
+          },
         },
         tags: true,
+        likes: true,
+        comments: true
       },
     });
     console.log("Prisma query result:", response);
@@ -233,49 +292,129 @@ router.post("/searchblogs", middleware, async (req: Request, res: Response): Pro
 
 router.post("/gettitles", middleware, async (req: Request, res: Response): Promise<void> => {
   const { title } = req.body;
+  if (!title) {
+    res.status(400).json({ message: "Title is required for search" });
+    return
+  }
   try {
-    const response = await prisma.post.findMany({
+    const posts = await prisma.post.findMany({
       where: {
         title: {
           contains: title,
-          mode: "insensitive",
-        }
+          mode: 'insensitive',
+        },
       },
-      orderBy: { likes: 'desc' },
-      select: {
-        title: true,
-      }
-    })
-    res.status(200).json({ response });
+    });
+    res.status(200).json(posts);
+
   } catch (error) {
     res.status(500).json({ error });
     console.log(error);
   }
 })
 
-router.get("/updatelikes", middleware, async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.query;
-    const response = await prisma.post.update({
-      where: { id: Number(id) },
-      data: {
-        likes: { increment: 1 },
-      }
-    });
-    res.status(200).json(response);
-  } catch (err) {
-    res.status(500).send({ message: "error updating likes", err });
+router.post("/:PostId/updatelikes", middleware, async (req: Request, res: Response): Promise<void> => {
+  const { PostId } = req.params;
+  const authorId = Number(req.auth?.userId);
+
+  if (isNaN(authorId) || isNaN(Number(PostId))) {
+    res.status(400).json({ message: "Invalid PostId or authorId" });
+    return;
   }
-});
-router.get("/updatecomments", middleware, async (req: Request, res: Response): Promise<void> => {
+
   try {
-    const { id } = req.query;
-    const response = await prisma.post.update({
-      where: { id: Number(id) },
-      data: {
-        comments: { increment: 1 },
+
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        authorId_postId: {
+          authorId,
+          postId: Number(PostId),
+        },
+      },
+    });
+
+    if (existingLike) {
+
+      await prisma.like.delete({
+        where: {
+          authorId_postId: {
+            authorId,
+            postId: Number(PostId),
+          },
+        },
+      });
+    } else {
+
+      await prisma.like.create({
+        data: {
+          authorId,
+          postId: Number(PostId),
+        },
+      });
+    }
+    const blogids = await prisma.like.findMany({
+      where: {
+        authorId,
       }
     })
+    let blogIds = blogids.map(post => post.postId);
+    const post = await prisma.post.findUnique({
+      where: {
+        id: Number(PostId),
+      },
+      include: {
+        author: {
+          select: { username: true },
+        },
+        tags: true,
+        likes: true,
+        comments: true,
+      },
+    });
+
+    if (!post) {
+      res.status(404).json({ message: "Post not found" });
+      return;
+    }
+    const response = {
+      blogIds,
+      post,
+    }
+    res.status(200).json(response);
+  } catch (err) {
+    console.error("Error updating likes:", err);
+    res.status(500).send({ message: "Error updating likes", error: err });
+  }
+});
+
+router.post("/:postId/updatecomments", middleware, async (req: Request, res: Response): Promise<void> => {
+  const userid = req.auth?.userId;
+  const { postId } = req.params;
+  const { content } = req.body;
+  try {
+    const comment = await prisma.comment.create({
+      data: {
+        content,
+        authorId: Number(userid),
+        postId: parseInt(postId),
+      }
+    })
+    const post = await prisma.post.findUnique({
+      where: {
+        id: parseInt(postId),
+      }, include: {
+        author: {
+          select: {
+            username: true,
+            profilePicture: true,
+          },
+        },
+        tags: true,
+        likes: true,
+        comments: true
+      }
+    });
+    res.status(201).json(post);
   } catch (err) {
     res.status(500).send({ message: "error updating comments", err });
   }

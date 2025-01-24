@@ -2,10 +2,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import isLoggedIn from "../functions/loggedin";
 import scheduleTokenRefresh from "../functions/schedulerefresh";
+import axios from "axios";
+import { FaUserCircle } from "react-icons/fa";
 
 const Header = () => {
   const navigate = useNavigate();
   const [logged, setLogged] = useState(isLoggedIn());
+  const [profilePicture, setProfilePicture] = useState("");
 
   const handleSignupButton = () => navigate("/signup");
   const handleLoginButton = () => navigate("/signin");
@@ -16,12 +19,31 @@ const Header = () => {
     localStorage.removeItem("refreshtoken");
     navigate("/home");
   };
-
+  const handlepfp = () => {
+    navigate("/myprofile");
+  }
   useEffect(() => {
     if (logged) {
       const token = localStorage.getItem("authtoken") || "";
       const refreshtoken = localStorage.getItem("refreshtoken") || "";
+
       scheduleTokenRefresh(token, refreshtoken);
+
+
+      axios
+        .get("http://localhost:3000/api/v1/user/info", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          setProfilePicture(response.data.data.profilePicture);
+        })
+        .catch((error) => {
+          console.error("Error fetching profile picture:", error);
+        });
+    } else {
+      setProfilePicture("");
     }
   }, [logged]);
 
@@ -44,7 +66,21 @@ const Header = () => {
         </nav>
 
         {logged ? (
-          <div className="space-x-6">
+          <div className="space-x-6 flex items-center">
+            {profilePicture ? (
+
+              <button onClick={handlepfp}>
+                <img
+                  src={profilePicture}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full border-2 border-[#F2E9E4]"
+                />
+              </button>
+            ) : (
+              <button onClick={handlepfp}>
+                <FaUserCircle className="text-[#F2E9E4] text-3xl" />
+              </button>
+            )}
             <button
               className="px-8 py-3 bg-transparent text-[#F2E9E4] border-2 border-[#F2E9E4] rounded-full hover:bg-[#F2E9E4] hover:text-[#22223B] transition-all duration-300 ease-in-out transform hover:scale-105"
               onClick={handleLogoutButton}
