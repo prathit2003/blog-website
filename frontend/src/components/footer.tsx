@@ -1,56 +1,70 @@
-import React from "react";
+import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa";
 
-const Footer: React.FC = () => {
+const Footer = () => {
   return (
-    <footer className="bg-black text-white text-center py-12">
-      <div className="container mx-auto px-6">
-        <p className="text-lg md:text-xl mb-6">© 2024 MyBlog. All Rights Reserved.</p>
+    <footer className="bg-black text-white py-12 px-6 md:px-16">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between">
 
-        <div className="space-x-6 mb-8">
-          <a href="#home" className="hover:text-gray-400 text-lg md:text-xl">Home</a>
-          <a href="#about" className="hover:text-gray-400 text-lg md:text-xl">About</a>
-          <a href="#contact" className="hover:text-gray-400 text-lg md:text-xl">Contact</a>
-          <a href="#privacy" className="hover:text-gray-400 text-lg md:text-xl">Privacy Policy</a>
-        </div>
-
-        {/* Social Media Icons */}
-        <div className="flex justify-center space-x-6 mb-8">
-          <a href="https://facebook.com" className="text-white hover:text-blue-500">
-            <i className="fab fa-facebook-f text-2xl"></i>
-          </a>
-          <a href="https://twitter.com" className="text-white hover:text-blue-400">
-            <i className="fab fa-twitter text-2xl"></i>
-          </a>
-          <a href="https://instagram.com" className="text-white hover:text-pink-500">
-            <i className="fab fa-instagram text-2xl"></i>
-          </a>
-          <a href="https://linkedin.com" className="text-white hover:text-blue-700">
-            <i className="fab fa-linkedin-in text-2xl"></i>
-          </a>
-        </div>
-
-        {/* Newsletter Section */}
-        <div className="mb-8">
-          <p className="text-lg md:text-xl mb-4">Stay updated with our latest posts</p>
-          <div className="flex justify-center items-center">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="px-4 py-2 rounded-l-lg text-black"
-            />
-            <button className="bg-blue-500 text-white px-6 py-2 rounded-r-lg hover:bg-blue-600">
+        {/* Left Side - Community CTA */}
+        <div className="md:w-1/2">
+          <h2 className="text-2xl font-semibold">Join Our Community</h2>
+          <p className="mt-3 text-gray-400 max-w-md">
+            Stay updated with the latest articles, discussions, and insights. Connect with like-minded individuals.
+          </p>
+          <div className="mt-5 flex gap-4">
+            <a href="#" className="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-lg text-sm transition">
+              Join Forum
+            </a>
+            <a href="#" className="bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-lg text-sm transition">
               Subscribe
-            </button>
+            </a>
           </div>
         </div>
 
-        {/* Contact Info */}
-        <div className="text-lg md:text-xl mb-4">
-          <p>Contact us at: <a href="mailto:info@myblog.com" className="text-blue-400">info@myblog.com</a></p>
+        {/* Right Side - Social Links & Navigation */}
+        <div className="md:w-1/2 flex flex-col md:items-end mt-8 md:mt-0">
+          {/* Social Media Icons */}
+          <div className="flex gap-6">
+            <a href="#" className="text-gray-400 hover:text-white transition">
+              <FaFacebookF size={22} />
+            </a>
+            <a href="#" className="text-gray-400 hover:text-white transition">
+              <FaTwitter size={22} />
+            </a>
+            <a href="#" className="text-gray-400 hover:text-white transition">
+              <FaInstagram size={22} />
+            </a>
+            <a href="#" className="text-gray-400 hover:text-white transition">
+              <FaLinkedinIn size={22} />
+            </a>
+            <a href="#" className="text-gray-400 hover:text-white transition">
+              <FaYoutube size={22} />
+            </a>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="flex flex-wrap justify-end gap-6 mt-6 text-gray-400 text-sm">
+            <a href="#" className="hover:text-white transition">Home</a>
+            <a href="#" className="hover:text-white transition">Latest Blogs</a>
+            <a href="#" className="hover:text-white transition">Categories</a>
+            <a href="#" className="hover:text-white transition">Write for Us</a>
+            <a href="#" className="hover:text-white transition">Contact Us</a>
+          </div>
+
+          {/* Legal Links */}
+          <div className="flex justify-end gap-6 text-gray-500 text-sm mt-6">
+            <a href="#" className="hover:text-white transition">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition">Terms of Service</a>
+            <a href="#" className="hover:text-white transition">Disclaimer</a>
+          </div>
         </div>
       </div>
-    </footer>
 
+      {/* Copyright Section */}
+      <div className="border-t border-gray-800 mt-10 pt-6 text-gray-500 text-sm text-center">
+        © {new Date().getFullYear()} YourBlogName. All Rights Reserved.
+      </div>
+    </footer>
   );
 };
 

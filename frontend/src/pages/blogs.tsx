@@ -46,6 +46,7 @@ interface Blog {
 }
 
 const Blogs = () => {
+  const [refresh, setrefresh] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [likedBlogs, setLikedBlogs] = useState<number[]>([]);
@@ -100,7 +101,7 @@ const Blogs = () => {
       }
     };
     fetchData();
-  }, [token, navigate]);
+  }, [token, navigate, refresh]);
 
   const handleHideBlog = (blogId: number) => {
     setHiddenBlogs((prev) => [...prev, blogId]);
@@ -122,7 +123,7 @@ const Blogs = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       const updatedBlog = response.data;
-
+      setrefresh(!refresh);
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog.id === updatedBlog.id ? updatedBlog : blog
@@ -142,7 +143,7 @@ const Blogs = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       const updatedBlog = response.data;
-
+      setrefresh(!refresh);
       setBlogs((prevBlogs) =>
         prevBlogs.map((blog) =>
           blog.id === updatedBlog.id ? updatedBlog : blog

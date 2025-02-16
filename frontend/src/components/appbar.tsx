@@ -1,109 +1,41 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import isLoggedIn from "../functions/loggedin";
-import scheduleTokenRefresh from "../functions/schedulerefresh";
-import axios from "axios";
-import { FaUserCircle } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
-  const [logged, setLogged] = useState(isLoggedIn());
-  const [profilePicture, setProfilePicture] = useState("");
-
-  const handleSignupButton = () => navigate("/signup");
   const handleLoginButton = () => navigate("/signin");
 
-  const handleLogoutButton = () => {
-    setLogged(false);
-    localStorage.removeItem("authtoken");
-    localStorage.removeItem("refreshtoken");
-    navigate("/home");
-  };
-  const handlepfp = () => {
-    navigate("/myprofile");
-  }
-  useEffect(() => {
-    if (logged) {
-      const token = localStorage.getItem("authtoken") || "";
-      const refreshtoken = localStorage.getItem("refreshtoken") || "";
-
-      scheduleTokenRefresh(token, refreshtoken);
-
-
-      axios
-        .get("http://localhost:3000/api/v1/user/info", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          setProfilePicture(response.data.data.profilePicture);
-        })
-        .catch((error) => {
-          console.error("Error fetching profile picture:", error);
-        });
-    } else {
-      setProfilePicture("");
-    }
-  }, [logged]);
-
   return (
-    <header className="sticky top-0 w-full bg-[#22223B] text-[#F2E9E4] py-2 shadow-md border-b-2 border-white z-10">
-      <div className="container mx-auto px-6 flex items-center justify-between">
-        <div className="text-2xl font-bold font-['Merriweather', 'serif']">MyBlog</div>
+    <header className="sticky top-0 w-full bg-white shadow-md border-b border-gray-300 z-10 font-serif">
+      <div className="container mx-auto px-6 flex items-center py-3">
 
-        <nav className="space-x-6 hidden md:flex">
-          {["Home", "Trending", "Post", "Blogs"].map((text, idx) => (
-            <Link
-              key={idx}
-              to={`/${text.toLowerCase()}`}
-              className="relative text-[#F2E9E4] font-['Open Sans', 'sans-serif'] text-lg hover:text-[#CBB9A8] group transition-all duration-300 ease-in-out transform hover:scale-95"
+        <div className="text-2xl font-bold">LOGO</div>
+
+
+        <nav className="flex ml-6 space-x-6">
+          {["Explore", "Trending", "About"].map((link) => (
+            <a
+              key={link}
+              href={`#${link.toLowerCase()}`}
+              className="relative text-black text-lg transition-all duration-300 hover:text-gray-600"
             >
-              {text}
-              <span className="absolute bottom-[-2px] left-1/2 w-0 h-[2px] bg-[#F2E9E4] transition-all duration-300 ease-in-out transform -translate-x-1/2 group-hover:w-full"></span>
-            </Link>
+              {link}
+              <span className="absolute left-1/2 bottom-0 w-0 h-[2px] bg-black transition-all duration-300 hover:w-full transform -translate-x-1/2"></span>
+            </a>
           ))}
         </nav>
 
-        {logged ? (
-          <div className="space-x-6 flex items-center">
-            {profilePicture ? (
-
-              <button onClick={handlepfp}>
-                <img
-                  src={profilePicture}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-[#F2E9E4]"
-                />
-              </button>
-            ) : (
-              <button onClick={handlepfp}>
-                <FaUserCircle className="text-[#F2E9E4] text-3xl" />
-              </button>
-            )}
-            <button
-              className="px-8 py-3 bg-transparent text-[#F2E9E4] border-2 border-[#F2E9E4] rounded-full hover:bg-[#F2E9E4] hover:text-[#22223B] transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleLogoutButton}
-            >
-              Log out
-            </button>
-          </div>
-        ) : (
-          <div className="space-x-4">
-            <button
-              className="px-8 py-3 bg-transparent text-[#F2E9E4] border-2 border-[#F2E9E4] rounded-full hover:bg-[#F2E9E4] hover:text-[#22223B] transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleSignupButton}
-            >
-              Sign Up
-            </button>
-            <button
-              className="px-8 py-3 bg-transparent text-[#F2E9E4] border-2 border-[#F2E9E4] rounded-full hover:bg-[#F2E9E4] hover:text-[#22223B] transition-all duration-300 ease-in-out transform hover:scale-105"
-              onClick={handleLoginButton}
-            >
-              Log In
-            </button>
-          </div>
-        )}
+        <div className="flex items-center ml-auto space-x-6">
+          <a
+            href="#signup"
+            className="text-black text-lg underline transition-all duration-300 hover:text-gray-600"
+          >
+            signup
+          </a>
+          <button
+            onClick={handleLoginButton}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg transition-all duration-200 hover:scale-95 active:scale-90"
+          >Login</button>
+        </div>
       </div>
     </header>
   );

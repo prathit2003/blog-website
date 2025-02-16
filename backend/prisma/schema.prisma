@@ -8,13 +8,16 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  password     String
+  bio          String?
   profilePicture String?  
-  firstname String
-  username  String   @unique
-  posts     Post[]
+  firstname    String
+  username     String         @unique
+  posts        Post[]
+  subscriptions Subscription[]
+
   @@map("user")
 }
 
@@ -23,15 +26,16 @@ model Post {
   title      String
   content    String
   authorId   Int
-  likes       like[]
-  comments  Comment[] 
+  likes      Like[]
+  comments   Comment[] 
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   published  Boolean    @default(false)
   author     User       @relation(fields: [authorId], references: [id])
   tags       Tag[]      @relation("PostTags")
-  media     Json?     
+  media      Json?     
 }
+
 model Tag {
   id         Int       @id @default(autoincrement())
   name       String    @unique
@@ -39,6 +43,7 @@ model Tag {
   usageCount Int       @default(0)
   createdAt  DateTime  @default(now())
 }
+
 model Comment {
   id        Int      @id @default(autoincrement())
   content   String   
@@ -47,9 +52,15 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id])
 }
 
-model like { 
+model Like { 
   authorId  Int    
   postId    Int      
   post      Post     @relation(fields: [postId], references: [id])
   @@unique([authorId, postId])
+}
+
+model Subscription {
+   username        String   @id @unique
+   profilePicture  String? 
+   user            User     @relation(fields: [username], references: [username])
 }
