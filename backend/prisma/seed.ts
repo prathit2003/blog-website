@@ -1,29 +1,63 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function seedDatabase() {
   console.log("🌱 Seeding database...");
 
-
   const users = await prisma.user.createMany({
     data: [
-      { email: "alice@example.com", password: "pass1234", bio: "Tech blogger and AI enthusiast.", firstname: "Alice", username: "alice123" },
-      { email: "bob@example.com", password: "securepass567", bio: "Travel writer and adventure seeker.", firstname: "Bob", username: "bob_writer" },
-      { email: "charlie@example.com", password: "uniquePass789", bio: "Software engineer and web developer.", firstname: "Charlie", username: "charlie_dev" },
-      { email: "david@example.com", password: "strongPass321", bio: "Photographer and digital artist.", firstname: "David", username: "david_photos" },
-      { email: "emma@example.com", password: "emmaSecure987", bio: "Health and wellness advocate.", firstname: "Emma", username: "emma_wellness" },
+      {
+        email: "alice@example.com",
+        password: "pass1234",
+        bio: "Tech blogger and AI enthusiast.",
+        username: "alice123",
+      },
+      {
+        email: "bob@example.com",
+        password: "securepass567",
+        bio: "Travel writer and adventure seeker.",
+        username: "bob_writer",
+      },
+      {
+        email: "charlie@example.com",
+        password: "uniquePass789",
+        bio: "Software engineer and web developer.",
+        username: "charlie_dev",
+      },
+      {
+        email: "david@example.com",
+        password: "strongPass321",
+        bio: "Photographer and digital artist.",
+        username: "david_photos",
+      },
+      {
+        email: "emma@example.com",
+        password: "emmaSecure987",
+        bio: "Health and wellness advocate.",
+        username: "emma_wellness",
+      },
     ],
   });
 
   console.log("✅ Users created.");
 
   // Fetch users
-  const alice = await prisma.user.findUnique({ where: { username: "alice123" } });
-  const bob = await prisma.user.findUnique({ where: { username: "bob_writer" } });
-  const charlie = await prisma.user.findUnique({ where: { username: "charlie_dev" } });
-  const david = await prisma.user.findUnique({ where: { username: "david_photos" } });
-  const emma = await prisma.user.findUnique({ where: { username: "emma_wellness" } });
+  const alice = await prisma.user.findUnique({
+    where: { username: "alice123" },
+  });
+  const bob = await prisma.user.findUnique({
+    where: { username: "bob_writer" },
+  });
+  const charlie = await prisma.user.findUnique({
+    where: { username: "charlie_dev" },
+  });
+  const david = await prisma.user.findUnique({
+    where: { username: "david_photos" },
+  });
+  const emma = await prisma.user.findUnique({
+    where: { username: "emma_wellness" },
+  });
 
   if (!alice || !bob || !charlie || !david || !emma) {
     throw new Error("❌ Failed to retrieve users.");
@@ -38,7 +72,7 @@ async function seedDatabase() {
 
         However, with great power comes great responsibility. AI ethics is now a major area of research, as developers and policymakers grapple with issues such as bias in AI models, misinformation, and the impact of automation on jobs. The future of AI will likely involve a combination of stronger regulations, explainable AI, and more ethical AI training methodologies.`,
         authorId: alice.id,
-        published: true
+        published: true,
       },
       {
         title: "Exploring the Wonders of Europe",
@@ -46,7 +80,7 @@ async function seedDatabase() {
 
         Food is another aspect of European culture that travelers must experience. Italian pasta, Spanish tapas, and French pastries showcase the continent’s diverse culinary heritage. Whether you’re backpacking through hostels or enjoying a luxury stay in a historical castle, Europe is a must-visit for any travel enthusiast.`,
         authorId: bob.id,
-        published: true
+        published: true,
       },
       {
         title: "Mastering Full-Stack Web Development",
@@ -54,7 +88,7 @@ async function seedDatabase() {
 
         Becoming a proficient full-stack developer requires understanding both the client and server sides of web applications. Learning DevOps, cloud computing, and CI/CD pipelines can further enhance a developer's skill set. The future of web development will focus on performance, scalability, and seamless user experiences.`,
         authorId: charlie.id,
-        published: false
+        published: false,
       },
       {
         title: "The Art of Photography: Capturing Timeless Moments",
@@ -62,7 +96,7 @@ async function seedDatabase() {
 
         However, mastering photography requires understanding lighting, composition, and perspective. The rule of thirds, golden hour lighting, and proper framing can turn a simple snapshot into a masterpiece. Whether shooting with a DSLR or a smartphone, the essence of photography remains the same—freezing a moment in time.`,
         authorId: david.id,
-        published: true
+        published: true,
       },
       {
         title: "The Science of a Healthy Lifestyle",
@@ -70,8 +104,8 @@ async function seedDatabase() {
 
         Moreover, mindfulness and stress management play a vital role in health. Yoga, meditation, and deep-breathing exercises help reduce cortisol levels and promote relaxation. Living a healthy life is a continuous journey, but with small, consistent habits, anyone can achieve a happier and healthier state of being.`,
         authorId: emma.id,
-        published: true
-      }
+        published: true,
+      },
     ],
   });
 
@@ -80,11 +114,35 @@ async function seedDatabase() {
   // Create Comments
   await prisma.comment.createMany({
     data: [
-      { content: "This is a great take on AI! I totally agree with your perspective.", authorId: bob.id, postId: 1 },
-      { content: "Europe has always been on my bucket list! Thanks for the travel tips.", authorId: alice.id, postId: 2 },
-      { content: "Web development is evolving so fast! Thanks for breaking it down.", authorId: david.id, postId: 3 },
-      { content: "Photography is such a powerful medium! Love this article.", authorId: charlie.id, postId: 4 },
-      { content: "Health and wellness should be a priority for everyone. Great insights!", authorId: bob.id, postId: 5 }
+      {
+        content:
+          "This is a great take on AI! I totally agree with your perspective.",
+        authorId: bob.id,
+        postId: 1,
+      },
+      {
+        content:
+          "Europe has always been on my bucket list! Thanks for the travel tips.",
+        authorId: alice.id,
+        postId: 2,
+      },
+      {
+        content:
+          "Web development is evolving so fast! Thanks for breaking it down.",
+        authorId: david.id,
+        postId: 3,
+      },
+      {
+        content: "Photography is such a powerful medium! Love this article.",
+        authorId: charlie.id,
+        postId: 4,
+      },
+      {
+        content:
+          "Health and wellness should be a priority for everyone. Great insights!",
+        authorId: bob.id,
+        postId: 5,
+      },
     ],
   });
 
@@ -97,7 +155,7 @@ async function seedDatabase() {
       { authorId: charlie.id, postId: 1 },
       { authorId: alice.id, postId: 2 },
       { authorId: emma.id, postId: 5 },
-      { authorId: david.id, postId: 4 }
+      { authorId: david.id, postId: 4 },
     ],
   });
 
@@ -110,7 +168,7 @@ async function seedDatabase() {
       { name: "Travel" },
       { name: "Web Development" },
       { name: "Photography" },
-      { name: "Health & Wellness" }
+      { name: "Health & Wellness" },
     ],
   });
 
@@ -121,7 +179,7 @@ async function seedDatabase() {
     data: [
       { username: "alice123", profilePicture: null },
       { username: "bob_writer", profilePicture: null },
-      { username: "david_photos", profilePicture: null }
+      { username: "david_photos", profilePicture: null },
     ],
   });
 
