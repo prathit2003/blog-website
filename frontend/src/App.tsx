@@ -1,15 +1,14 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
-import Home from './pages/home';
-import SignIn from './pages/signin';
-import SignUp from './pages/signup';
-import Post from './pages/post';
-import Blogs from './pages/blogs';
+import Home from "./pages/home";
+import SignIn from "./pages/signin";
+import SignUp from "./pages/signup";
+import Post from "./pages/post";
+import Blogs from "./pages/blogs";
 import Trending from "./pages/trending";
-import MyProfile from './pages/my-profile';
-import MyBlogs from './pages/my-blogs';
+import MyProfile from "./pages/MyProfile";
+import MyBlogs from "./pages/my-blogs";
 function App() {
-
   return (
     <>
       <BrowserRouter>
@@ -25,9 +24,8 @@ function App() {
           <Route path="/blogs" element={<Blogs />} />
         </Routes>
       </BrowserRouter>
-
     </>
-  )
+  );
 }
 
-export default App
+export default App;

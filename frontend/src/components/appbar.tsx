@@ -9,7 +9,7 @@ const Header = () => {
     navigate("/signin");
   };
   const handleProfileClick = () => {
-    navigate("/my-profile");
+    navigate("/myprofile");
   };
   const navigation = [
     { name: "Explore", href: "/blogs" },
@@ -93,7 +93,7 @@ const Header = () => {
         {/* Login button */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {userLoggedIn ? (
-            <div className="w-1/12 h-1/12 rounded-full ring-2 ring-indigo-700 shadow-md">
+            <div className="w-1/12 h-1/12 rounded-full ring-2 ring-indigo-700 shadow-md hover:scale-105 hover:cursor-pointer">
               {ProfilepicUrl ? (
                 <img
                   onClick={handleProfileClick}
@@ -160,13 +160,33 @@ const Header = () => {
                   </a>
                 ))}
               </div>
-              <div className="py-6">
-                <a
-                  onClick={handlesignin}
-                  className="block rounded-md px-3 py-2 text-lg font-medium text-gray-800 hover:bg-gray-100 hover:text-purple-600 transition"
-                >
-                  Log in →
-                </a>
+              <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+                {userLoggedIn ? (
+                  <div className="w-1/12 h-1/12 rounded-full ring-2 ring-indigo-700 shadow-md hover:scale-105 hover:cursor-pointer">
+                    {ProfilepicUrl ? (
+                      <img
+                        onClick={handleProfileClick}
+                        src={ProfilepicUrl}
+                        alt="profile-picture"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        onClick={handleProfileClick}
+                        src="images/profilepic.webp"
+                        alt="profile-picture-holder"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <a
+                    onClick={handlesignin}
+                    className="text-lg font-semibold text-gray-800 hover:text-purple-600 hover:cursor-pointer transition"
+                  >
+                    Log in <span aria-hidden="true">→</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>

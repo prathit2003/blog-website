@@ -68,7 +68,7 @@ const SignIn: React.FC = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="flex z-20 mx-12 sm:mx-16 md:mx-32 lg:mx-auto flex-col lg:flex-row w-full max-w-5xl bg-white shadow-2xl rounded-2xl overflow-hidden max-h-[90vh] lg:max-h-[70vh]"
+        className="flex z-20 mx-12 sm:mx-16 md:mx-32 lg:mx-auto flex-col lg:flex-row w-full max-w-5xl bg-white shadow-3xl rounded-2xl overflow-hidden max-h-[90vh] lg:max-h-[70vh]"
       >
         {/* Image Section */}
         <div className="lg:w-1/2 hidden lg:block">
