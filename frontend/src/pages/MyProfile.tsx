@@ -13,7 +13,7 @@ import {
 import { motion } from "framer-motion";
 import isLoggedIn from "../functions/loggedin";
 import { Button } from "@headlessui/react";
-
+import Loading from "../components/loading";
 interface Subscriptions {
   username: string;
   profilePicture: string;
@@ -29,9 +29,16 @@ interface User {
 
 const MyProfile = () => {
   const [userinfo, setUserinfo] = useState<User | null>(null);
+  const [selectedTab, setSelectedTab] = useState<
+    "myblogs" | "liked" | "bookmarked"
+  >("myblogs");
   const [blogsStore, setBlogsStore] = useState<Blog[]>([]);
+  const [likedblogs, setLikedBlogs] = useState<Blog[]>([]);
+  const [bookmarkedBlogs, setBookmarkedBlogs] = useState<Blog[]>([]);
+  const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("authtoken");
   const navigate = useNavigate();
+
   const handleUserInfo = async () => {
     const response = await axios.get("http://localhost:3000/api/v1/user/info", {
       headers: { Authorization: `Bearer ${token}` },
@@ -48,6 +55,39 @@ const MyProfile = () => {
     );
     console.log(response.data.post);
     setBlogsStore(response.data.post);
+  };
+
+  const handleLikedBlogs = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/v1/blogs/liked-blogs",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setLoading(false);
+      setLikedBlogs(response.data.likedBlogs);
+    } catch (error) {
+      setLoading(false);
+      console.error("Error fetching liked blogs:", error);
+    }
+  };
+  const handleBookmarkedBlogs = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/v1/blogs/bookmarked-blogs",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setLoading(false);
+      setBookmarkedBlogs(response.data.bookmarkedBlogs);
+    } catch (error) {
+      setLoading(false);
+      console.error("Error fetching bookmarked blogs:", error);
+    }
   };
 
   const handleBackButton = () => {
@@ -105,7 +145,7 @@ const MyProfile = () => {
         >
           <Button
             onClick={handleBackButton}
-            className="w-fit flex items-center gap-2 mt-4 ml-5 bg-white shadow-2xl rounded-xl py-2 px-4 text-gray-700 hover:text-indigo-600 transition"
+            className="w-fit flex items-center gap-2  ml-5 bg-white shadow-2xl rounded-xl py-2 px-4 text-gray-700 hover:text-indigo-600 transition"
           >
             <FaArrowLeft />
             <span>Back</span>
@@ -168,23 +208,99 @@ const MyProfile = () => {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="flex-1 overflow-y-auto bg-white shadow-2xl rounded-xl w-full p-4"
+          className="flex-1 overflow-y-auto bg-white shadow-2xl rounded-xl w-full h-1/3"
         >
-          {blogsStore.length > 0 ? (
-            blogsStore.map((blog, index) => <Blogs key={index} {...blog} />)
+          {/* Sticky Tab Selector */}
+          <div className="sticky top-0 z-10 bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-around gap-4">
+            <button
+              onClick={() => setSelectedTab("myblogs")}
+              className={`px-4 py-2 rounded-lg transition ${
+                selectedTab === "myblogs"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              My Blogs
+            </button>
+            <button
+              onClick={() => {
+                setSelectedTab("liked");
+                if (likedblogs.length === 0) handleLikedBlogs();
+              }}
+              className={`px-4 py-2 rounded-lg transition ${
+                selectedTab === "liked"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Liked
+            </button>
+            <button
+              onClick={() => {
+                setSelectedTab("bookmarked");
+                if (bookmarkedBlogs.length === 0) handleBookmarkedBlogs();
+              }}
+              className={`px-4 py-2 rounded-lg transition ${
+                selectedTab === "bookmarked"
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Bookmarked
+            </button>
+          </div>
+
+          {/* Blog Content */}
+          {loading ? (
+            <Loading />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-              <FaFileAlt className="w-12 h-12 text-indigo-400" />
-              <p className="text-center">
-                No blogs found. Start writing your first blog!
-              </p>
-              <Button
-                onClick={() => navigate("/post")}
-                className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white px-4 py-2 hover:bg-indigo-700 transition"
-              >
-                Create a Blog
-              </Button>
-            </div>
+            <>
+              {(() => {
+                const blogsToRender =
+                  selectedTab === "myblogs"
+                    ? blogsStore
+                    : selectedTab === "liked"
+                    ? likedblogs
+                    : bookmarkedBlogs;
+
+                return blogsToRender.length > 0 ? (
+                  blogsToRender.map((blog, index) => (
+                    <div key={index} className="w-full">
+                      <Blogs {...blog} />
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
+                    <FaFileAlt className="w-12 h-12 text-indigo-400" />
+                    {selectedTab === "myblogs" ? (
+                      <>
+                        <p className="text-center">
+                          No blogs found. Start writing your first blog!
+                        </p>
+                        <Button
+                          onClick={() => navigate("/post")}
+                          className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white px-4 py-2 hover:bg-indigo-700 transition"
+                        >
+                          Create a Blog
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-center">
+                          No blogs found, explore more.
+                        </p>
+                        <Button
+                          onClick={() => navigate("/blogs")}
+                          className="mt-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white px-4 py-2 hover:bg-indigo-700 transition"
+                        >
+                          Explore
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+            </>
           )}
         </motion.div>
       </div>
@@ -196,7 +312,7 @@ const MyProfile = () => {
         transition={{ delay: 0.2 }}
         className="bg-white shadow-2xl rounded-xl w-1/3 h-full flex flex-col"
       >
-        <div className="flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl px-8 py-6 shadow-lg m-6">
+        <div className="flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl px-8 py-6 shadow-xl m-6">
           <h2 className="text-3xl font-bold text-white tracking-wide">
             Subscriptions
           </h2>

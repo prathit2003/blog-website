@@ -93,7 +93,7 @@ const Header = () => {
         {/* Login button */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {userLoggedIn ? (
-            <div className="w-1/12 h-1/12 rounded-full ring-2 ring-indigo-700 shadow-md hover:scale-105 hover:cursor-pointer">
+            <div className="w-1/12 h-1/12 rounded-full shadow-2xl hover:shadow-indigo-500 hover:cursor-pointer">
               {ProfilepicUrl ? (
                 <img
                   onClick={handleProfileClick}
