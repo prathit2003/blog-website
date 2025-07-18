@@ -35,6 +35,12 @@ router.delete(
         res.status(404).json({ success: false, message: "Post not found" });
         return;
       }
+      await prisma.comment.deleteMany({
+        where: { postId: Number(id) },
+      });
+      await prisma.like.deleteMany({
+        where: { postId: Number(id) },
+      });
       await prisma.post.delete({
         where: { id: Number(id) },
       });
@@ -60,12 +66,10 @@ router.post(
       const parsedTags = typeof tags === "string" ? JSON.parse(tags) : tags;
       const isPublished = published === "true";
       if (!title || !content || !userId || !Array.isArray(parsedTags)) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            message: "Invalid inputs, some fields are missing",
-          });
+        res.status(400).json({
+          success: false,
+          message: "Invalid inputs, some fields are missing",
+        });
         return;
       }
 
@@ -120,24 +124,28 @@ router.put(
   async (req: Request, res: Response): Promise<void> => {
     const { id } = req.query;
     const { title, content, published, tags } = req.body;
+
     try {
-      if (!title || !content || !id || Array.isArray(tags)) {
+      if (!title || !content || !id || !Array.isArray(tags)) {
         res.status(500).json({
           success: false,
-          message: "invalid inputs, some input feilds are missing",
+          message: "Invalid inputs, some input fields are missing",
         });
         return;
       }
+
       const post = await prisma.post.findUnique({ where: { id: Number(id) } });
 
       if (!post) {
         res.status(404).json({ success: false, message: "Post not found" });
         return;
       }
+
       const tagData = tags.map((tag: string) => ({
         where: { name: tag },
         create: { name: tag },
       }));
+
       const updatedPost = await prisma.post.update({
         where: { id: Number(id) },
         data: {
@@ -148,7 +156,19 @@ router.put(
             connectOrCreate: tagData,
           },
         },
+        include: {
+          author: {
+            select: {
+              username: true,
+              profilePicture: true,
+            },
+          },
+          tags: true,
+          likes: true,
+          comments: true,
+        },
       });
+
       await Promise.all(
         tags.map((tag: string) =>
           prisma.tag.update({
@@ -157,11 +177,14 @@ router.put(
           })
         )
       );
+
       res.status(200).json({ success: true, post: updatedPost });
     } catch (err) {
-      res
-        .status(500)
-        .json({ success: false, message: "Failed to update post" });
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update post",
+      });
     }
   }
 );

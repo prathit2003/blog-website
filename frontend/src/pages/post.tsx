@@ -67,7 +67,6 @@ const Post: React.FC = () => {
     }
   };
 
-
   const handleMediaToggle = () => {
     setToggle(!toggle);
   };
@@ -99,7 +98,9 @@ const Post: React.FC = () => {
   return (
     <div className="bg-black text-white min-h-screen flex justify-center items-center">
       <div className="bg-black border border-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-        <h1 className="text-3xl font-bold mb-6 text-white">Create a New Post</h1>
+        <h1 className="text-3xl font-bold mb-6 text-white">
+          Create a New Post
+        </h1>
 
         <form className="space-y-4">
           <div>
@@ -117,7 +118,10 @@ const Post: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="content" className="text-lg font-semibold text-white">
+            <label
+              htmlFor="content"
+              className="text-lg font-semibold text-white"
+            >
               Post Content
             </label>
             <textarea
@@ -144,7 +148,9 @@ const Post: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="text-lg font-semibold text-white">Publish Post</label>
+            <label className="text-lg font-semibold text-white">
+              Publish Post
+            </label>
             <div className="flex items-center mt-2">
               <input
                 type="checkbox"
@@ -159,7 +165,9 @@ const Post: React.FC = () => {
             </div>
           </div>
           <div>
-            <label className="text-lg font-semibold text-white">Upload Media</label>
+            <label className="text-lg font-semibold text-white">
+              Upload Media
+            </label>
             <button
               type="button"
               className="flex items-center justify-center mt-2 px-4 py-2 border border-white rounded-md bg-black text-white hover:bg-white hover:text-black transition-colors"

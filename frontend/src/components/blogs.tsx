@@ -7,11 +7,16 @@ import axios from "axios";
 
 type BlogsProps = {
   blog: Blog;
-  setBlogId: React.Dispatch<React.SetStateAction<number>>;
+  setBlogToUpdate: React.Dispatch<React.SetStateAction<Blog | undefined>>;
   state: string;
   setUpdatePopup: React.Dispatch<React.SetStateAction<boolean>>;
 };
-const Blogs = ({ blog, setBlogId, state, setUpdatePopup }: BlogsProps) => {
+const Blogs = ({
+  blog,
+  setBlogToUpdate,
+  state,
+  setUpdatePopup,
+}: BlogsProps) => {
   const [showOptions, setShowOptions] = useState(false);
 
   useEffect(() => {
@@ -90,8 +95,8 @@ const Blogs = ({ blog, setBlogId, state, setUpdatePopup }: BlogsProps) => {
                 <div className="absolute right-0 top-6 mt-2 w-32 bg-white border rounded-xl shadow-lg z-20">
                   <button
                     onClick={() => {
+                      setBlogToUpdate(blog);
                       setUpdatePopup(true);
-                      setBlogId(blog.id);
                     }}
                     className="w-full px-4 py-2 text-left text-sm hover:bg-indigo-100 transition rounded-t-xl"
                   >
