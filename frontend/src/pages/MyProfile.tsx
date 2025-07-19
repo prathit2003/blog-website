@@ -90,7 +90,7 @@ const MyProfile = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:3000/api/v1/blogs/liked-blogs",
+        "http://localhost:3000/api/v1/blogs/likedBlogs",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -106,7 +106,7 @@ const MyProfile = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:3000/api/v1/blogs/bookmarked-blogs",
+        "http://localhost:3000/api/v1/blogs/bookmarkedBlogs",
         {
           headers: { Authorization: `Bearer ${token}` },
         }

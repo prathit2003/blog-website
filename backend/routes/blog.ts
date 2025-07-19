@@ -5,9 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 
 const router = express.Router();
-const prisma = new PrismaClient({
-  log: ["query", "info", "warn", "error"],
-});
+const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -35,6 +33,9 @@ router.delete(
         res.status(404).json({ success: false, message: "Post not found" });
         return;
       }
+      await prisma.bookmark.deleteMany({
+        where: { postId: Number(id) },
+      });
       await prisma.comment.deleteMany({
         where: { postId: Number(id) },
       });
@@ -163,6 +164,7 @@ router.put(
               profilePicture: true,
             },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -205,6 +207,7 @@ router.get(
               profilePicture: true,
             },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -281,6 +284,7 @@ router.get(
               profilePicture: true,
             },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -317,6 +321,7 @@ router.get(
               profilePicture: true,
             },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -362,6 +367,7 @@ router.post(
               profilePicture: true,
             },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -455,6 +461,7 @@ router.post(
           author: {
             select: { username: true },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -503,6 +510,7 @@ router.post(
               profilePicture: true,
             },
           },
+          bookmarks: true,
           tags: true,
           likes: true,
           comments: true,
@@ -511,6 +519,85 @@ router.post(
       res.status(201).json(post);
     } catch (err) {
       res.status(500).send({ message: "error updating comments", err });
+    }
+  }
+);
+
+router.get(
+  "/likedBlogs",
+  middleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const authorId = Number(req.auth?.userId);
+
+      const likes = await prisma.like.findMany({
+        where: { authorId },
+        select: { postId: true },
+      });
+
+      const postIds = likes.map((like) => like.postId);
+
+      const likedBlogs = await prisma.post.findMany({
+        where: {
+          id: {
+            in: postIds,
+          },
+        },
+        include: {
+          author: {
+            select: {
+              username: true,
+              profilePicture: true,
+            },
+          },
+          bookmarks: true,
+          tags: true,
+          likes: true,
+          comments: true,
+        },
+      });
+
+      res.status(200).json(likedBlogs);
+    } catch (error) {
+      console.error("Error fetching liked blogs:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  }
+);
+router.get(
+  "/bookmarkedBlogs",
+  middleware,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const authorId = Number(req.auth?.userId);
+      const Bookmarkedpostids = await prisma.bookmark.findMany({
+        where: { authorId },
+        select: { postId: true },
+      });
+      const postIds = Bookmarkedpostids.map((bookmark) => bookmark.postId);
+      const bookmarkedBlogs = await prisma.post.findMany({
+        where: {
+          id: {
+            in: postIds,
+          },
+        },
+        include: {
+          author: {
+            select: {
+              username: true,
+              profilePicture: true,
+            },
+          },
+          bookmarks: true,
+          tags: true,
+          likes: true,
+          comments: true,
+        },
+      });
+      res.status(200).json(bookmarkedBlogs);
+    } catch (error) {
+      console.error("Error fetching bookmarked blogs:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
   }
 );

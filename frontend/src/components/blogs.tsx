@@ -29,17 +29,68 @@ const Blogs = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const onLike = () => {
-    // Handle like action
-    console.log(`Liked blog with ID: ${blog.id}`);
+  const onLike = async () => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/api/v1/blog/${blog.id}/like`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authtoken")}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        blog.likes.push({
+          authorId: response.data.id,
+          postId: blog.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error liking blog:", error);
+    }
   };
-  const onComment = () => {
-    // Handle comment action
-    console.log(`Commented on blog with ID: ${blog.id}`);
+  const onComment = async (content: string) => {
+    try {
+      const response = await axios.post(
+        `http://Localhost:3000/api/vi/blog/${blog.id}/comment`,
+        {
+          content: content,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authtoken")}`,
+          },
+        }
+      );
+      if (response.status === 200) {
+        blog.comments.push({
+          content: response.data.content,
+          authorId: response.data.authorId,
+          postId: blog.id,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
   const onBookmark = () => {
-    // Handle bookmark action
-    console.log(`Bookmarked blog with ID: ${blog.id}`);
+    axios
+      .post(`http://localhost:3000/api/v1/blog/${blog.id}/bookmark`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("authtoken")}`,
+        },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          blog.bookmarks.push({
+            authorId: response.data.authorId,
+            postId: blog.id,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Error bookmarking blog:", error);
+      });
   };
 
   function handleDelete(blogid: number): void {
@@ -51,7 +102,7 @@ const Blogs = ({
           },
         })
         .then(() => {
-          // Optionally, you can redirect or update the UI after deletion
+          window.location.reload();
         });
     } catch (error) {
       console.error("Error deleting blog:", error);
@@ -144,7 +195,7 @@ const Blogs = ({
         {/* Actions: Like, Comment, Bookmark */}
         <div className="flex items-center justify-around border-t pt-4 text-gray-600 text-sm">
           <button
-            onClick={onLike}
+            onClick={() => onLike}
             className="flex items-center gap-2 hover:text-indigo-800 transition-colors"
           >
             <FaHeart />
@@ -152,7 +203,11 @@ const Blogs = ({
           </button>
 
           <button
-            onClick={onComment}
+            onClick={() =>
+              onComment(
+                blog.comments.length > 0 ? blog.comments[0].content : ""
+              )
+            }
             className="flex items-center gap-2 hover:text-indigo-800 transition-colors"
           >
             <FaCommentAlt />
@@ -160,7 +215,7 @@ const Blogs = ({
           </button>
 
           <button
-            onClick={onBookmark}
+            onClick={() => onBookmark}
             className="flex items-center gap-2 hover:text-indigo-800 transition-colors"
           >
             <FaRegBookmark />

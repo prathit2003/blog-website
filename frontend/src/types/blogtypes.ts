@@ -1,6 +1,7 @@
 interface Comment {
   content: string;
   authorId: number;
+  postId: number;
 }
 
 interface Media {
@@ -10,6 +11,10 @@ interface Media {
 }
 
 interface Likes {
+  authorId: number;
+  postId: number;
+}
+interface Bookmark {
   authorId: number;
   postId: number;
 }
@@ -25,6 +30,7 @@ export interface Blog {
   content: string;
   createdAt: string;
   updatedAt: string;
+  bookmarks: Bookmark[];
   media: Media[];
   likes: Likes[];
   comments: Comment[];

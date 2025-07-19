@@ -25,6 +25,7 @@ model Post {
   title      String
   content    String
   authorId   Int
+  bookmarks  bookmark[]
   likes      Like[]
   comments   Comment[] 
   createdAt  DateTime   @default(now())
@@ -50,7 +51,12 @@ model Comment {
   postId    Int      
   post      Post     @relation(fields: [postId], references: [id])
 }
-
+model bookmark {
+  authorId  Int 
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+  @@unique([authorId, postId])
+}
 model Like { 
   authorId  Int    
   postId    Int      
